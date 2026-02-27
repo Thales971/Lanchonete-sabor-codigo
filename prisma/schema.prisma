@@ -1,0 +1,66 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model Cliente {
+    id         Int      @id @default(autoincrement())
+    nome       String
+    telefone   String   @db.Char(11)
+    email      String   @unique
+    cpf        String  @db.Char(11) @unique
+    cep        String?   @db.Char(8)
+    logadouro  String?
+    bairro     String?
+    localidade String?
+    uf         String?
+    ativo      Boolean  @default(true)
+
+
+    @@map("Cliente")
+}
+
+enum TipoCategoria {
+    LANCHE
+    BEBIDA
+    SOBREMESA
+    COMBOS
+}
+model Produto {
+    id         Int      @id @default(autoincrement())
+    nome       String
+    descricao  String
+    categoria  TipoCategoria
+    preco      Decimal  @db.Decimal(10, 2)
+    disponivel Boolean  @default(true)
+
+    @@map("Produto")
+}
+
+enum status {
+    aberto
+    pago
+    cancelado
+}
+model Pedido {
+    id         Int      @id @default(autoincrement())
+    clienteId  Int
+    status     status   @default(aberto)
+    total      Decimal  @db.Decimal(10, 2)
+    criadoEm   DateTime @default(now())
+
+    @@map("Pedido")
+}
+
+model ItemPedido {
+    id            Int      @id @default(autoincrement())
+    pedidoId      Int
+    produtoId     Int
+    quantidade    Int
+    precoUnitario Decimal  @db.Decimal(10, 2)
+
+    @@map("ItemPedido")
+}
