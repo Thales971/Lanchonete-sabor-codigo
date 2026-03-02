@@ -11,8 +11,15 @@ export const criar = async (req, res) => {
         const { nome, telefone, email, cpf, cep } = req.body;
 
         if (!nome) return res.status(400).json({ error: true, message: 'O campo "nome" é obrigatório.' });
+
+        if (cep.length !== 8) return res.status(400).json({ error: true, message: 'O campo "cep" deve conter exatamente 8 (oito) carácteres.' });
+
         if (!telefone) return res.status(400).json({ error: true, message: 'O campo "telefone" é obrigatório.' });
+
+        if(data.telefone === telefone) return res.status(400).json({ error: true, message: 'O telefone informado já está cadastrado.' });
+
         if (!email) return res.status(400).json({ error: true, message: 'O campo "email" é obrigatório.' });
+
         if (!cpf) return res.status(400).json({ error: true, message: 'O campo "cpf" é obrigatório.' });
 
         let endereco = {};
@@ -118,7 +125,7 @@ export const atualizar = async (req, res) => {
 
         if (!cliente)
             return res.status(404).json({ error: true, message: 'Cliente não encontrado.' });
-
+        if (dados.cep.length !== 8) return res.status(400).json({ error: true, message: 'O campo "cep" deve conter exatamente 8 (oito) carácteres.' });
         const data = await cliente.atualizar(dados);
 
         return res.status(200).json({
