@@ -1,24 +1,29 @@
 import prisma from '../utils/prismaClient.js';
 
 export default class ClienteModel {
+
     constructor({ id, nome, telefone, email, cpf, cep, logradouro, bairro, localidade, uf, ativo } = {}) {
         this.id = id;
         this.nome = nome;
-        this.telefone = telefone;
-        this.email = email;
-        this.cpf = cpf;
         this.cep = cep;
         this.logradouro = logradouro;
         this.bairro = bairro;
-        this.localidade = localidade;
+        this.cidade = cidade;
         this.uf = uf;
-        this.ativo = ativo;
+        this.telefone = telefone;
+        this.email = email;
+        this.cpf = cpf;
     }
 
     async criar() {
         return prisma.cliente.create({
             data: {
                 nome: this.nome,
+                cep: this.cep,
+                logradouro: this.logradouro,
+                bairro: this.bairro,
+                cidade: this.cidade,
+                uf: this.uf,
                 telefone: this.telefone,
                 email: this.email,
                 cpf: this.cpf,
@@ -29,6 +34,8 @@ export default class ClienteModel {
                 uf: this.uf,
             },
         });
+
+
     }
 
     async atualizar() {
@@ -58,6 +65,7 @@ export default class ClienteModel {
         if (filtros.nome) where.nome = { contains: filtros.nome, mode: 'insensitive' };
         if (filtros.cpf) where.cpf = filtros.cpf;
         if (filtros.ativo !== undefined) where.ativo = filtros.ativo === 'true';
+
 
         return prisma.cliente.findMany({ where });
     }
