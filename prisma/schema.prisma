@@ -13,7 +13,7 @@ model Cliente {
     email      String   @unique
     cpf        String  @db.Char(11) @unique
     cep        String?   @db.Char(8)
-    logadouro  String?
+    logradouro  String?
     bairro     String?
     localidade String?
     uf         String?
