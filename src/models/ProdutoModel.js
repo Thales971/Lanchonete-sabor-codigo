@@ -8,6 +8,7 @@ export default class ProdutoModel {
         this.categoria = categoria;
         this.preco = preco;
         this.disponivel = disponivel;
+        
     }
 
     async criar() {
