@@ -16,6 +16,7 @@ export default class ClienteModel {
                 email: this.email,
                 cpf: this.cpf,
             },
+            
         });
     }
 
