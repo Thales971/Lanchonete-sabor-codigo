@@ -11,6 +11,8 @@ export default class ClienteModel {
         this.telefone = telefone;
         this.email = email;
         this.cpf = cpf;
+
+        
     }
 
     async criar() {
