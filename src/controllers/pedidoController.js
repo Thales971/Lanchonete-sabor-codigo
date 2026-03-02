@@ -1,72 +1,34 @@
-import ClienteModel from '../models/clienteModel.js';
+import PedidoModel from '../models/pedidoModel.js';
+import ClienteModel from '../models/ClienteModel.js';
 
-const buscarEnderecoPorCep = async (cep) => {
-    const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-    const data = await response.json();
-    return data.erro ? null : data;
-};
+const statusValidos = ['ABERTO', 'PAGO', 'CANCELADO'];
 
 export const criar = async (req, res) => {
     try {
-        const { nome, telefone, email, cpf, cep } = req.body;
+        const { clienteId } = req.body;
 
-        if (!nome)
-            return res.status(400).json({ error: true, message: 'O campo "nome" é obrigatório.' });
-
-        if (!telefone)
+        if (!clienteId)
             return res
                 .status(400)
-                .json({ error: true, message: 'O campo "telefone" é obrigatório.' });
+                .json({ error: true, message: 'O campo "clienteId" é obrigatório.' });
 
-        if (!email)
-            return res.status(400).json({ error: true, message: 'O campo "email" é obrigatório.' });
+        const cliente = await ClienteModel.buscarPorId(Number(clienteId));
 
-        if (!cpf)
-            return res.status(400).json({ error: true, message: 'O campo "cpf" é obrigatório.' });
+        if (!cliente)
+            return res.status(404).json({ error: true, message: 'Cliente não encontrado.' });
 
-        if (!nome)
-            return res.status(400).json({ error: true, message: 'O campo "nome" é obrigatório.' });
-
-        if (cpf.length !== 11)
+        if (!cliente.ativo)
             return res.status(400).json({
                 error: true,
-                message: 'O campo "cpf" deve conter exatamente onze (11) carácteres',
+                message: 'Não é possível criar pedido para um cliente inativo.',
             });
 
-        if (cep.length !== 8)
-            return res.status(400).json({
-                error: true,
-                message: 'O campo "cep" deve conter exatamente oito (8) carácteres.',
-            });
-
-        if (data.telefone === telefone)
-            return res
-                .status(400)
-                .json({ error: true, message: 'O telefone informado já está cadastrado.' });
-
-        let endereco = {};
-        if (cep) {
-            endereco = await buscarEnderecoPorCep(cep);
-            if (!endereco) return res.status(400).json({ error: true, message: 'CEP inválido.' });
-        }
-
-        const cliente = new ClienteModel({
-            nome,
-            telefone,
-            email,
-            cpf,
-            cep: cep ? String(cep) : null,
-            logradouro: endereco.logradouro || null,
-            bairro: endereco.bairro || null,
-            localidade: endereco.localidade || null,
-            uf: endereco.uf || null,
-        });
-
-        const registro = await cliente.criar();
+        const pedido = new PedidoModel({ clienteId: Number(clienteId) });
+        const registro = await pedido.criar();
 
         return res.status(201).json({
             error: false,
-            message: 'Cliente cadastrado com sucesso!',
+            message: 'Pedido criado com sucesso!',
             data: registro,
         });
     } catch (error) {
@@ -77,9 +39,15 @@ export const criar = async (req, res) => {
 
 export const buscarTodos = async (req, res) => {
     try {
-        const { nome, cpf, ativo } = req.query;
+        const { clienteId, status } = req.query;
 
-        const registros = await ClienteModel.buscarTodos({ nome, cpf, ativo });
+        if (status && !statusValidos.includes(status))
+            return res.status(400).json({
+                error: true,
+                message: 'Status inválido. Use: ABERTO, PAGO ou CANCELADO.',
+            });
+
+        const registros = await PedidoModel.buscarTodos({ clienteId, status });
 
         return res.status(200).json({
             error: false,
@@ -87,7 +55,7 @@ export const buscarTodos = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: true, message: 'Erro ao buscar clientes.' });
+        return res.status(500).json({ error: true, message: 'Erro ao buscar pedidos.' });
     }
 };
 
@@ -97,18 +65,18 @@ export const buscarPorId = async (req, res) => {
 
         if (isNaN(id)) return res.status(400).json({ error: true, message: 'ID inválido.' });
 
-        const cliente = await ClienteModel.buscarPorId(id);
+        const pedido = await PedidoModel.buscarPorId(id);
 
-        if (!cliente)
-            return res.status(404).json({ error: true, message: 'Cliente não encontrado.' });
+        if (!pedido)
+            return res.status(404).json({ error: true, message: 'Pedido não encontrado.' });
 
         return res.status(200).json({
             error: false,
-            data: cliente,
+            data: pedido,
         });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: true, message: 'Erro ao buscar cliente.' });
+        return res.status(500).json({ error: true, message: 'Erro ao buscar pedido.' });
     }
 };
 
@@ -118,47 +86,46 @@ export const atualizar = async (req, res) => {
 
         if (isNaN(id)) return res.status(400).json({ error: true, message: 'ID inválido.' });
 
-        const { nome, telefone, email, cpf, cep, ativo } = req.body;
+        const { status } = req.body;
 
-        const dados = {};
+        if (!status)
+            return res
+                .status(400)
+                .json({ error: true, message: 'O campo "status" é obrigatório.' });
 
-        if (nome) dados.nome = nome;
-        if (telefone) dados.telefone = telefone;
-        if (email) dados.email = email;
-        if (cpf) dados.cpf = cpf;
-        if (ativo !== undefined) dados.ativo = ativo;
-
-        if (cep) {
-            const endereco = await buscarEnderecoPorCep(cep);
-
-            if (!endereco) return res.status(400).json({ error: true, message: 'CEP inválido.' });
-
-            dados.cep = String(cep);
-            dados.logradouro = endereco.logradouro || null;
-            dados.bairro = endereco.bairro || null;
-            dados.localidade = endereco.localidade || null;
-            dados.uf = endereco.uf || null;
-        }
-
-        if (!Object.keys(dados).length)
+        if (!statusValidos.includes(status))
             return res.status(400).json({
                 error: true,
-                message: 'Nenhum campo enviado para atualização.',
+                message: 'Status inválido. Use: ABERTO, PAGO ou CANCELADO.',
             });
 
-        const cliente = await ClienteModel.buscarPorId(id);
+        const pedido = await PedidoModel.buscarPorId(id);
 
-        if (!cliente)
-            return res.status(404).json({ error: true, message: 'Cliente não encontrado.' });
+        if (!pedido)
+            return res.status(404).json({ error: true, message: 'Pedido não encontrado.' });
+
+        if (pedido.status === 'PAGO')
+            return res.status(400).json({
+                error: true,
+                message: 'Não é possível alterar um pedido já pago.',
+            });
+
+        if (pedido.status === 'CANCELADO')
+            return res.status(400).json({
+                error: true,
+                message: 'Não é possível alterar um pedido cancelado.',
+            });
+
+        const registro = await pedido.atualizar({ status });
 
         return res.status(200).json({
             error: false,
-            message: 'Cliente atualizado com sucesso!',
-            data,
+            message: 'Pedido atualizado com sucesso!',
+            data: registro,
         });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: true, message: 'Erro ao atualizar cliente.' });
+        return res.status(500).json({ error: true, message: 'Erro ao atualizar pedido.' });
     }
 };
 
@@ -168,24 +135,25 @@ export const deletar = async (req, res) => {
 
         if (isNaN(id)) return res.status(400).json({ error: true, message: 'ID inválido.' });
 
-        const cliente = await ClienteModel.buscarPorId(id);
+        const pedido = await PedidoModel.buscarPorId(id);
 
-        if (!cliente)
-            return res.status(404).json({ error: true, message: 'Cliente não encontrado.' });
+        if (!pedido)
+            return res.status(404).json({ error: true, message: 'Pedido não encontrado.' });
 
-        if ((cliente.ativo = true))
-            return res
-                .status(404)
-                .json({ error: true, message: 'O cliente não pode ser excluído pois está ativo' });
+        if (pedido.status === 'ABERTO')
+            return res.status(400).json({
+                error: true,
+                message: 'Não é possível excluir um pedido com status ABERTO. Cancele-o primeiro.',
+            });
 
-        await cliente.deletar();
+        await pedido.deletar();
 
         return res.status(200).json({
             error: false,
-            message: 'Cliente removido com sucesso.',
+            message: 'Pedido removido com sucesso.',
         });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: true, message: 'Erro ao deletar cliente.' });
+        return res.status(500).json({ error: true, message: 'Erro ao deletar pedido.' });
     }
 };
