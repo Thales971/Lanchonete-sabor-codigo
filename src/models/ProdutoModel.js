@@ -1,11 +1,13 @@
 import prisma from '../utils/prismaClient.js';
 
 export default class ProdutoModel {
-    constructor({ id = null, nome = null, estado = true, preco = null } = {}) {
+    constructor({ id = null, nome = null, descricao = null, categoria = null, preco = null, disponivel = true } = {}) {
         this.id = id;
         this.nome = nome;
-        this.estado = estado;
+        this.descricao = descricao;
+        this.categoria = categoria;
         this.preco = preco;
+        this.disponivel = disponivel;
     }
 
     async criar() {
@@ -15,16 +17,15 @@ export default class ProdutoModel {
                 descricao: this.descricao,
                 categoria: this.categoria,
                 preco: this.preco,
-                disponivel: this.disponivel
+                disponivel: this.disponivel,
             },
         });
     }
 
-//Parei apartir daqui
     async atualizar() {
         return prisma.produto.update({
             where: { id: this.id },
-            data: { nome: this.nome, estado: this.estado, preco: this.preco },
+            data: dados,
         });
     }
 
@@ -32,14 +33,22 @@ export default class ProdutoModel {
         return prisma.produto.delete({ where: { id: this.id } });
     }
 
+    //Filtros
     static async buscarTodos(filtros = {}) {
         const where = {};
 
+        //nome
         if (filtros.nome) where.nome = { contains: filtros.nome, mode: 'insensitive' };
-        if (filtros.estado !== undefined) where.estado = filtros.estado === 'true';
-        if (filtros.preco !== undefined) where.preco = parseFloat(filtros.preco);
+        //categoria
+        if (filtros.categoria) where.categoria = { contains: filtros.categoria, mode: 'insensitive' };
+        //disponível
+         if (filtros.disponivel !== undefined) where.disponivel = filtros.disponivel === 'true';
+        //precoMin
+        if (filtros.precoMin) where.preco = { gte: Number(filtros.precoMin)};
+        //precoMax
+        if (filtros.precoMax) where.preco = { lte: Number (filtros.precoMax)};
 
-        return prisma.produto.findMany({ where });
+        return prisma.produto.findMany({ where, orderBy: { id: 'asc' } });
     }
 
     static async buscarPorId(id) {
