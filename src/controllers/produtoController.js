@@ -90,11 +90,13 @@ export const atualizar = async (req, res) => {
             return res.status(404).json({ error: 'Registro não encontrado para atualizar.' });
         }
 
-        if (req.body.nome !== undefined) produto.nome = req.body.nome;
-        if (req.body.descricao !== undefined) produto.descricao = req.body.descricao;
-        if (req.body.categoria !== undefined) produto.categoria = req.body.categoria;
-        if (req.body.preco !== undefined) produto.preco = parseFloat(req.body.preco);
-        if (req.body.disponivel !== undefined) produto.disponivel = req.body.disponivel;
+        const { nome, descricao, categoria, preco, disponivel } = req.body;
+
+        if (nome !== undefined) produto.nome = nome;
+        if (descricao !== undefined) produto.descricao = descricao;
+        if (categoria !== undefined) produto.categoria = categoria;
+        if (preco !== undefined) produto.preco = parseFloat(preco);
+        if (disponivel !== undefined) produto.disponivel = disponivel;
 
         const data = await produto.atualizar();
 
