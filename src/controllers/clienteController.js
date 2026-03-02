@@ -39,21 +39,10 @@ export const criar = async (req, res) => {
                 message: 'O campo "cep" deve conter exatamente oito (8) carácteres.',
             });
 
-        if (!telefone)
-            return res
-                .status(400)
-                .json({ error: true, message: 'O campo "telefone" é obrigatório.' });
-
         if (data.telefone === telefone)
             return res
                 .status(400)
                 .json({ error: true, message: 'O telefone informado já está cadastrado.' });
-
-        if (!email)
-            return res.status(400).json({ error: true, message: 'O campo "email" é obrigatório.' });
-
-        if (!cpf)
-            return res.status(400).json({ error: true, message: 'O campo "cpf" é obrigatório.' });
 
         let endereco = {};
         if (cep) {
