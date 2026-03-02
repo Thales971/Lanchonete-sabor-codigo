@@ -12,18 +12,26 @@ export default class ProdutoModel {
     }
 
     async criar() {
+        if (Number(this.preco) <= 0) {
+            throw new Error('PRECO_INVALIDO');
+        }
+
         return prisma.produto.create({
             data: {
                 nome: this.nome,
                 descricao: this.descricao,
                 categoria: this.categoria,
-                preco: this.preco,
+                preco: Number(this.preco),
                 disponivel: this.disponivel,
             },
         });
     }
 
-    async atualizar() {
+    async atualizar(dados) {
+        if (dados.preco !== undefined && Number(dados.preco) <= 0) {
+            throw new Error('PRECO_INVALIDO');
+        }
+
         return prisma.produto.update({
             where: { id: this.id },
             data: dados,
@@ -31,23 +39,34 @@ export default class ProdutoModel {
     }
 
     async deletar() {
+        const pedidoAberto = await prisma.itemPedido.findFirst({
+            where: {
+                produtoId: this.id,
+                pedido: {
+                    status: 'ABERTO',
+                },
+            },
+        });
+
+        if (pedidoAberto) {
+            throw new Error('PRODUTO_EM_PEDIDO_ABERTO');
+        }
+
         return prisma.produto.delete({ where: { id: this.id } });
     }
 
-    //Filtros
     static async buscarTodos(filtros = {}) {
         const where = {};
 
-        //nome
         if (filtros.nome) where.nome = { contains: filtros.nome, mode: 'insensitive' };
-        //categoria
-        if (filtros.categoria) where.categoria = { contains: filtros.categoria, mode: 'insensitive' };
-        //disponível
-         if (filtros.disponivel !== undefined) where.disponivel = filtros.disponivel === 'true';
-        //precoMin
-        if (filtros.precoMin) where.preco = { gte: Number(filtros.precoMin)};
-        //precoMax
-        if (filtros.precoMax) where.preco = { lte: Number (filtros.precoMax)};
+        if (filtros.categoria) where.categoria = filtros.categoria;
+        if (filtros.disponivel !== undefined) where.disponivel = filtros.disponivel === 'true';
+
+        if (filtros.precoMin || filtros.precoMax) {
+            where.preco = {};
+            if (filtros.precoMin) where.preco.gte = Number(filtros.precoMin);
+            if (filtros.precoMax) where.preco.lte = Number(filtros.precoMax);
+        }
 
         return prisma.produto.findMany({ where, orderBy: { id: 'asc' } });
     }
@@ -58,44 +77,3 @@ export default class ProdutoModel {
         return new ProdutoModel(data);
     }
 }
-
-//Regras de negócio
-
-//Preco deve ser maior que 0
-if (typeof precoMin !== 'number' || precoMin <= 0) {
-    return res.status(400).json({
-        error: 'O preço é obrigatório e deve ser maior que 0.',
-    });
-}
-
-//Não pode deletar produto vinculado a pedido ABERTO
-const produtoId = req.params.id;
-
-const existePedidoAberto = await prisma.pedido.findFirst({
-    where: {
-        status: 'ABERTO',
-        itens: {
-            some: {
-                produtoId: Number(produtoId),
-            },
-        },
-    },
-});
-
-if (existePedidoAberto) {
-    return res.status(400).json({
-        error: 'Não é possível excluir o produto pois ele está vinculado a um pedido aberto.',
-    });
-}
-
-// Se passou na regra, pode deletar
-await prisma.produto.delete({
-    where: { id: Number(produtoId) },
-});
-
-//Não pode adicionar produto com disponivel = false ao pedido
-   if (exists.disponivel === false) {
-       return res.status(400).json({
-           error: 'Produtos com disponibilidade igual a falso não podem ser adicionados.',
-       });
-   }

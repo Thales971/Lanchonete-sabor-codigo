@@ -12,12 +12,12 @@ async function main() {
     console.log('🌱 Resetando tabelas Cliente e Produto...');
 
     // Remove todos os registros existentes
-    await prisma.Cliente.deleteMany();
-    await prisma.Produto.deleteMany();
+    await prisma.cliente.deleteMany();
+    await prisma.produto.deleteMany();
 
     console.log('📦 Inserindo novos registros de clientes e produtos...');
 
-    await prisma.Cliente.createMany({
+    await prisma.cliente.createMany({
         data: [
             {
                 nome: 'Ana Silva',
@@ -52,7 +52,7 @@ async function main() {
         ],
     });
 
-    await prisma.Produto.createMany({
+    await prisma.produto.createMany({
         data: [
             {
                 nome: 'X-Burguer',
@@ -64,25 +64,25 @@ async function main() {
                 nome: 'Refrigerante 350ml',
                 descricao: 'Bebida gaseificada',
                 categoria: 'BEBIDA',
-                preco: 5.0,
+                preco: 5,
             },
             {
                 nome: 'Sorvete 2 bolas',
                 descricao: 'Sorvete de creme e chocolate',
                 categoria: 'SOBREMESA',
-                preco: 8.0,
+                preco: 8,
             },
             {
                 nome: 'Combo Família',
                 descricao: '4 lanches + 4 bebidas',
                 categoria: 'COMBO',
-                preco: 60.0,
+                preco: 60,
             },
             {
                 nome: 'Salada',
                 descricao: 'Mix de folhas verdes',
                 categoria: 'LANCHE',
-                preco: 12.0
+                preco: 12,
             },
         ],
     });

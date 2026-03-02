@@ -7,6 +7,6 @@ router.post("/produtos", controller.criar);
 router.get("/produtos", controller.buscarTodos);
 router.get("/produtos/:id", controller.buscarPorId);
 router.put("/produtos/:id", controller.atualizar);
-router.delete("/produtos:id", controller.deletar);
+router.delete("/produtos/:id", controller.deletar);
 
 export default router;
