@@ -12,35 +12,37 @@ export default class ClienteModel {
         return prisma.cliente.create({
             data: {
                 nome: this.nome,
-                estado: this.estado,
-                preco: this.preco,
+                telefone: this.telefone,
+                email: this.email,
+                cpf: this.cpf,
             },
+            
         });
     }
 
     async atualizar() {
-        return prisma.exemplo.update({
+        return prisma.cliente.update({
             where: { id: this.id },
-            data: { nome: this.nome, estado: this.estado, preco: this.preco },
+            data: { nome: this.nome, telefone: this.telefone, email: this.email, cpf: this.cpf },
         });
     }
 
     async deletar() {
-        return prisma.exemplo.delete({ where: { id: this.id } });
+        return prisma.cliente.delete({ where: { id: this.id } });
     }
 
     static async buscarTodos(filtros = {}) {
         const where = {};
-
         if (filtros.nome) where.nome = { contains: filtros.nome, mode: 'insensitive' };
-        if (filtros.estado !== undefined) where.estado = filtros.estado === 'true';
-        if (filtros.preco !== undefined) where.preco = parseFloat(filtros.preco);
+        if (filtros.telefone) where.telefone = { contains: filtros.telefone, mode: 'insensitive' };
+        if (filtros.email) where.email = { contains: filtros.email, mode: 'insensitive' };
+        if (filtros.cpf) where.cpf = { contains: filtros.cpf, mode: 'insensitive' };
 
-        return prisma.exemplo.findMany({ where });
+        return prisma.cliente.findMany({ where });
     }
 
     static async buscarPorId(id) {
-        const data = await prisma.exemplo.findUnique({ where: { id } });
+        const data = await prisma.cliente.findUnique({ where: { id } });
         if (!data) return null;
         return new ExemploModel(data);
     }
