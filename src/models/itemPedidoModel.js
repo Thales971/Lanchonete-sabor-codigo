@@ -12,10 +12,10 @@ export default class ItemPedidoModel {
     async criar() {
         return prisma.itemPedido.create({
             data: {
-                pedido: this.pedidoId,
-                produto: this.produtoId,
+                pedidoId: this.pedidoId,
+                produtoId: this.produtoId,
                 quantidade: this.quantidade,
-                precoUni: this.precoUnitario,
+                precoUnitario: this.precoUnitario,
             },
         });
     }
@@ -34,7 +34,6 @@ export default class ItemPedidoModel {
     static async buscarTodos(filtros = {}) {
         const where = {};
 
-        // filtros opcionais
         if (filtros.pedidoId) where.pedidoId = Number(filtros.pedidoId);
         if (filtros.produtoId) where.produtoId = Number(filtros.produtoId);
         if (filtros.quantidade) where.quantidade = Number(filtros.quantidade);
@@ -46,5 +45,29 @@ export default class ItemPedidoModel {
         const data = await prisma.itemPedido.findUnique({ where: { id } });
         if (!data) return null;
         return new ItemPedidoModel(data);
+    }
+
+    static async buscarPedidoPorId(id) {
+        return prisma.pedido.findUnique({ where: { id } });
+    }
+
+    static async buscarProdutoPorId(id) {
+        return prisma.produto.findUnique({ where: { id } });
+    }
+
+    static async recalcularTotalDoPedido(pedidoId) {
+        const itens = await prisma.itemPedido.findMany({
+            where: { pedidoId },
+            select: { quantidade: true, precoUnitario: true },
+        });
+
+        const total = itens.reduce((acumulador, item) => {
+            return acumulador + Number(item.precoUnitario) * item.quantidade;
+        }, 0);
+
+        return prisma.pedido.update({
+            where: { id: pedidoId },
+            data: { total },
+        });
     }
 }

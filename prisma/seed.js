@@ -75,7 +75,7 @@ async function main() {
             {
                 nome: 'Combo Família',
                 descricao: '4 lanches + 4 bebidas',
-                categoria: 'COMBOS',
+                categoria: 'COMBO',
                 preco: 60.0,
             },
             {

@@ -53,6 +53,17 @@ export default class ClienteModel {
     };
 
     async deletar() {
+        const pedidosAbertos = await prisma.pedido.findFirst({
+            where: {
+                clienteId: this.id,
+                status: 'ABERTO'
+            }
+        });
+
+        if (pedidosAbertos) {
+            throw new Error('Não pode deletar cliente com pedido em status ABERTO.');
+        }
+
         return prisma.cliente.delete({ where: { id: this.id } });
     };
 
@@ -70,4 +81,14 @@ export default class ClienteModel {
         if (!data) return null;
         return new ClienteModel(data);
     };
+
+    static async buscarEnderecoPorCep(cep) {
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const data = await response.json();
+            return data.erro ? null : data;
+        } catch (error) {
+            return { indisponivel: true };
+        }
+    }
 };
