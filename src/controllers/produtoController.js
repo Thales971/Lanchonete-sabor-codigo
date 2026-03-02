@@ -1,17 +1,34 @@
 import ProdutoModel from '../models/ProdutoModel.js';
 
+const categoriasValidas = ['LANCHE', 'BEBIDA', 'SOBREMESA', 'COMBO'];
+
 export const criar = async (req, res) => {
     try {
         if (!req.body) {
             return res.status(400).json({ error: 'Corpo da requisição vazio. Envie os dados!' });
         }
 
-        const { nome, estado, preco } = req.body;
+        const { nome, descricao, categoria, preco, disponivel = true } = req.body;
 
         if (!nome) return res.status(400).json({ error: 'O campo "nome" é obrigatório!' });
+
+        if (!descricao) return res.status(400).json({ error: 'O campo "descrição" é obrigatório!' });
+
+        if (!categoria || !categoriasValidas.includes(categoria)) {
+            return res.status(400).json({
+                error: 'Categoria inválida. Use: LANCHE, BEBIDA, SOBREMESA ou COMBO'
+            });
+        }
+
         if (preco === undefined || preco === null) return res.status(400).json({ error: 'O campo "preco" é obrigatório!' });
 
-        const produto = new ProdutoModel({ nome, estado, preco: parseFloat(preco) });
+        const produto = new ProdutoModel({
+            nome,
+            descricao,
+            categoria,
+            preco: parseFloat(preco),
+            disponivel
+        });
         const data = await produto.criar();
 
         res.status(201).json({ message: 'Registro criado com sucesso!', data });
@@ -74,8 +91,10 @@ export const atualizar = async (req, res) => {
         }
 
         if (req.body.nome !== undefined) produto.nome = req.body.nome;
-        if (req.body.estado !== undefined) produto.estado = req.body.estado;
+        if (req.body.descricao !== undefined) produto.descricao = req.body.descricao;
+        if (req.body.categoria !== undefined) produto.categoria = req.body.categoria;
         if (req.body.preco !== undefined) produto.preco = parseFloat(req.body.preco);
+        if (req.body.disponivel !== undefined) produto.disponivel = req.body.disponivel;
 
         const data = await produto.atualizar();
 
