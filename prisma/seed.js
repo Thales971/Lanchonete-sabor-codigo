@@ -54,57 +54,93 @@ async function main() {
         ],
     });
 
+    console.log('Inserindo Produtos')
+
     await prisma.produto.createMany({
         data: [
             {
                 nome: 'X-Burguer',
                 descricao: 'Hambúrguer com queijo e alface',
-                categoria: 'LANCHE',
-                preco: 15.5,
+                categoria: TipoCategoria.LANCHE,
+                preco: '15.5',
+                disponivel: true
             },
             {
                 nome: 'Refrigerante 350ml',
                 descricao: 'Bebida gaseificada',
-                categoria: 'BEBIDA',
-                preco: 5,
+                categoria: TipoCategoria.BEBIDA,
+                preco: '5',
+                disponivel: true
             },
             {
                 nome: 'Sorvete 2 bolas',
                 descricao: 'Sorvete de creme e chocolate',
-                categoria: 'SOBREMESA',
-                preco: 8,
+                categoria: TipoCategoria.SOBREMESA,
+                preco: '8',
+                disponivel: true
             },
             {
                 nome: 'Combo Família',
                 descricao: '4 lanches + 4 bebidas',
-                categoria: 'COMBO',
-                preco: 60,
+                categoria: TipoCategoria.COMBO,
+                preco: '60',
+                disponivel: true
             },
             {
                 nome: 'Salada',
                 descricao: 'Mix de folhas verdes',
                 categoria: 'LANCHE',
-                preco: 12,
+                preco: '12',
+                disponivel: true
             },
         ],
     });
+    console.log("pedidos sendo criados...")
 
     await prisma.pedido.create({
-        data: {
+        data:[ {
             clienteId: 1,
-            total: 12,
-            status: 'ABERTO',
+            total: '12',
+            status: TipoStatus.ABERTO,
             criadoEm: new Date(),
         },
+        {
+            clienteId: 2,
+            total: '8',
+            status: TipoStatus.PAGO,
+            criadoEm: new Date(),
+        },
+        {
+            clienteId: 3,
+            total: '15.5',
+            status: TipoStatus.CANCELADO,
+            criadoEm: new Date(),
+        }
+    ]
     });
 
+    console.log("inserindo itens pedido...")
+
     await prisma.itemPedido.create({
-        data: {
+        data:[ {
             pedidoId: 1,
+            produtoId: 5,
+            quantidade: 1,
+            precoUnitario: '12',
+        },
+        {
+            pedidoId: 2,
+            produtoId: 3,
+            quantidade: 1,
+            precoUnitario: '8', 
+        },
+        {
+            pedidoId: 3,
             produtoId: 1,
             quantidade: 1,
-            precoUnitario: 12,
-        },
+            precoUnitario: '15.5'
+        }
+    ]
     });
 
     console.log('✅ Seed concluído!');
