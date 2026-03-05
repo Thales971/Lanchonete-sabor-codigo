@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
+const { PrismaClient, TipoCategoria, TipoStatus } = pkg;
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 
@@ -12,10 +12,12 @@ async function main() {
     console.log('🌱 Resetando tabelas Cliente e Produto...');
 
     // Remove todos os registros existentes
-    await prisma.itemPedido.deleteMany();
-    await prisma.pedido.deleteMany();
-    await prisma.produto.deleteMany();
-    await prisma.cliente.deleteMany();
+    //await prisma.itemPedido.deleteMany();
+    //await prisma.pedido.deleteMany();
+    //await prisma.produto.deleteMany();
+    //await prisma.cliente.deleteMany();
+
+    //se ja criado na máquina, retire as // acima
 
     console.log('📦 Inserindo novos registros de clientes e produtos...');
 
@@ -54,7 +56,7 @@ async function main() {
         ],
     });
 
-    console.log('Inserindo Produtos')
+    console.log('📦 Inserindo Produtos...')
 
     await prisma.produto.createMany({
         data: [
@@ -97,27 +99,24 @@ async function main() {
     });
     console.log("pedidos sendo criados...")
 
-    await prisma.pedido.create({
-        data:[ {
-            clienteId: 1,
-            total: '12',
-            status: TipoStatus.ABERTO,
-            criadoEm: new Date(),
-        },
-        {
-            clienteId: 2,
-            total: '8',
-            status: TipoStatus.PAGO,
-            criadoEm: new Date(),
-        },
-        {
-            clienteId: 3,
-            total: '15.5',
-            status: TipoStatus.CANCELADO,
-            criadoEm: new Date(),
-        }
+   await prisma.pedido.createMany({
+    data: [ { 
+        clienteId: 1,
+        total: '12', 
+        status: TipoStatus.ABERTO 
+    },
+    {
+        clienteId: 2,
+        total: '8',
+        status: TipoStatus.PAGO,
+    },
+    {
+        clienteId: 3,
+        total: '15.5',
+        status: TipoStatus.PAGO,
+    }
     ]
-    });
+});
 
     console.log("inserindo itens pedido...")
 
