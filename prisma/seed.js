@@ -95,6 +95,7 @@ async function main() {
                 preco: '12',
                 disponivel: true
             },
+            
         ],
     });
     console.log("pedidos sendo criados...")
