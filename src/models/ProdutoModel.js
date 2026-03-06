@@ -16,6 +16,23 @@ export default class ProdutoModel {
             throw new Error('PRECO_INVALIDO');
         }
 
+        if (!this.nome || this.nome.length < 3) {
+            throw new Error('O nome deve ter pelo menos 3 caracteres');
+        }
+
+        if (this.descricao && this.descricao.length > 255) {
+            throw new Error('A descrição deve ter no máximo 255 caracteres');
+        }
+
+        const precoNum = Number(this.preco);
+        if (precoNum <= 0) {
+            throw new Error('O preço deve ser maior que 0');
+        }
+
+        if (!Number.isInteger(Number((precoNum * 100).toFixed(10)))) {
+            throw new Error('O preço deve ter 2 casas decimais');
+        }
+
         return prisma.produto.create({
             data: {
                 nome: this.nome,
@@ -49,7 +66,7 @@ export default class ProdutoModel {
         });
 
         if (pedidoAberto) {
-            throw new Error('PRODUTO_EM_PEDIDO_ABERTO');
+            throw new Error('Não pode deletar produto em que o pedido esteja em status ABERTO.');
         }
 
         return prisma.produto.delete({ where: { id: this.id } });
