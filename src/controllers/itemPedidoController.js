@@ -19,14 +19,11 @@ export const criar = async (req, res) => {
         if (Number.isNaN(pedidoIdNumero) || Number.isNaN(produtoIdNumero))
             return res.status(400).json({ erro: 'ID inválido. Informe um número válido.' });
 
-		if (!Number.isInteger(quantidadeNumero) || quantidadeNumero <= 0)
-            return res.status(400).json({ erro: 'Quantidade deve ser maior que 0.' });
+        if (!Number.isInteger(quantidadeNumero) || quantidadeNumero <= 0 || quantidadeNumero > 99)
+            return res.status(400).json({ erro: 'Quantidade deve ser entre 1 e 99.' });
 
-        if (quantidadeNumero < 0 || quantidadeNumero > 100)
-            return res.status(400).json({ erro: 'Quantidade deve ser entre 0 e 100.' });
-
-		const pedido = await ItemPedidoModel.buscarPedidoPorId(pedidoIdNumero);
-		if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado.' });
+        const pedido = await ItemPedidoModel.buscarPedidoPorId(pedidoIdNumero);
+        if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado.' });
 
         if (pedido.status !== 'ABERTO') {
             return res

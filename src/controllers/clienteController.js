@@ -1,48 +1,92 @@
 import ClienteModel from '../models/ClienteModel.js';
 
 const codigosChuva = new Set([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]);
+const regexSomenteDigitos = /^\d+$/;
+const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const normalizarTexto = (valor) => (typeof valor === 'string' ? valor.trim() : valor);
+
+const validarNome = (nome) => {
+    if (!nome) return "O campo 'nome' é obrigatório.";
+    if (nome.length < 3 || nome.length > 100) {
+        return "O campo 'nome' deve conter entre 3 e 100 caracteres.";
+    }
+    return null;
+};
+
+const validarTelefone = (telefone) => {
+    if (!telefone) return "O campo 'telefone' é obrigatório.";
+    if (!regexSomenteDigitos.test(telefone) || (telefone.length !== 10 && telefone.length !== 11)) {
+        return "O campo 'telefone' deve conter 10 ou 11 dígitos numéricos.";
+    }
+    return null;
+};
+
+const validarEmail = (email) => {
+    if (!email) return "O campo 'email' é obrigatório.";
+    if (!regexEmail.test(email)) return 'Email informado é inválido.';
+    return null;
+};
+
+const validarCpf = (cpf) => {
+    if (!cpf) return "O campo 'cpf' é obrigatório.";
+    if (!regexSomenteDigitos.test(cpf) || cpf.length !== 11) {
+        return 'CPF deve conter exatamente 11 dígitos numéricos.';
+    }
+    return null;
+};
+
+const validarCep = (cep) => {
+    if (!cep) return null;
+    if (!regexSomenteDigitos.test(cep) || cep.length !== 9) {
+        return 'CEP deve conter exatamente 9 dígitos numéricos.';
+    }
+    return null;
+};
 
 const montarSugestaoClima = (temperatura, chove) => {
     if (chove) {
-        return 'Dia chuvoso! Ofereca promocoes para delivery.';
+        return '🌧 Dia chuvoso! Ofereca promocoes para delivery.';
     }
 
     if (temperatura >= 28) {
-        return 'Dia quente! Destaque combos com bebida gelada.';
+        return '🌞 Dia quente! Destaque combos com bebida gelada.';
     }
 
     if (temperatura <= 18) {
-        return 'Dia frio! Destaque cafes e lanches quentes.';
+        return '🥶 Dia frio! Destaque cafes e lanches quentes.';
     }
 
-    return 'Clima agradavel! Aproveite para divulgar combos da casa.';
+    return '🌤 Clima agradavel! Aproveite para divulgar combos da casa.';
 };
 
 export const criar = async (req, res) => {
     try {
-        const { nome, telefone, email, cpf, cep } = req.body;
+        const nome = normalizarTexto(req.body.nome);
+        const telefone = normalizarTexto(req.body.telefone);
+        const email = normalizarTexto(req.body.email)?.toLowerCase();
+        const cpf = normalizarTexto(req.body.cpf);
+        const cep = normalizarTexto(req.body.cep);
 
-        if (!nome) return res.status(400).json({ erro: "O campo 'nome' é obrigatório." });
+        const erroNome = validarNome(nome);
+        if (erroNome) return res.status(400).json({ erro: erroNome });
 
-        if (!telefone) return res.status(400).json({ erro: "O campo 'telefone' é obrigatório." });
+        const erroTelefone = validarTelefone(telefone);
+        if (erroTelefone) return res.status(400).json({ erro: erroTelefone });
 
-        if (!email) return res.status(400).json({ erro: "O campo 'email' é obrigatório." });
+        const erroEmail = validarEmail(email);
+        if (erroEmail) return res.status(400).json({ erro: erroEmail });
 
-        if (!cpf) return res.status(400).json({ erro: "O campo 'cpf' é obrigatório." });
+        const erroCpf = validarCpf(cpf);
+        if (erroCpf) return res.status(400).json({ erro: erroCpf });
 
-        if (cpf.length !== 11)
-            return res
-                .status(400)
-                .json({ erro: "O campo 'cpf' deve conter exatamente 11 dígitos numéricos." });
-
-        if (cep && cep.length !== 8)
-            return res
-                .status(400)
-                .json({ erro: 'CEP deve conter exatamente 8 dígitos numéricos.' });
+        const erroCep = validarCep(cep);
+        if (erroCep) return res.status(400).json({ erro: erroCep });
 
         let endereco = {};
         if (cep) {
-            endereco = await ClienteModel.buscarEnderecoPorCep(cep);
+            // ViaCEP trabalha com 8 digitos; usamos os 8 iniciais mantendo a regra de entrada em 9.
+            const cepViaCep = cep.slice(0, 8);
+            endereco = await ClienteModel.buscarEnderecoPorCep(cepViaCep);
             if (endereco && endereco.indisponivel)
                 return res.status(400).json({ erro: 'Serviço ViaCEP indisponível no momento.' });
             if (!endereco) return res.status(400).json({ erro: `CEP ${cep} não encontrado.` });
@@ -70,6 +114,9 @@ export const criar = async (req, res) => {
             }
             if (error.meta.target.includes('telefone')) {
                 return res.status(400).json({ erro: 'Telefone já cadastrado para outro cliente.' });
+            }
+            if (error.meta.target.includes('email')) {
+                return res.status(400).json({ erro: 'Email já cadastrado no sistema.' });
             }
         }
         console.error(error);
@@ -119,33 +166,63 @@ export const atualizar = async (req, res) => {
         if (isNaN(id))
             return res.status(400).json({ erro: 'ID inválido. Informe um número válido.' });
 
-        const { nome, telefone, email, cpf, cep, ativo } = req.body;
+        const nome = normalizarTexto(req.body.nome);
+        const telefone = normalizarTexto(req.body.telefone);
+        const email = normalizarTexto(req.body.email)?.toLowerCase();
+        const cpf = normalizarTexto(req.body.cpf);
+        const cep = normalizarTexto(req.body.cep);
+        const { ativo } = req.body;
 
         const dados = {};
 
-        if (nome) dados.nome = nome;
-        if (telefone) dados.telefone = telefone;
-        if (email) dados.email = email;
-        if (cpf) dados.cpf = cpf;
+        if (nome !== undefined) {
+            const erroNome = validarNome(nome);
+            if (erroNome) return res.status(400).json({ erro: erroNome });
+            dados.nome = nome;
+        }
+        if (telefone !== undefined) {
+            const erroTelefone = validarTelefone(telefone);
+            if (erroTelefone) return res.status(400).json({ erro: erroTelefone });
+            dados.telefone = telefone;
+        }
+        if (email !== undefined) {
+            const erroEmail = validarEmail(email);
+            if (erroEmail) return res.status(400).json({ erro: erroEmail });
+            dados.email = email;
+        }
+        if (cpf !== undefined) {
+            const erroCpf = validarCpf(cpf);
+            if (erroCpf) return res.status(400).json({ erro: erroCpf });
+            dados.cpf = cpf;
+        }
         if (ativo !== undefined) dados.ativo = ativo;
 
-        if (cep) {
-            if (cep.length !== 8) {
-                return res
-                    .status(400)
-                    .json({ erro: 'CEP deve conter exatamente 8 dígitos numéricos.' });
+        if (cep !== undefined) {
+            const erroCep = validarCep(cep);
+            if (erroCep) return res.status(400).json({ erro: erroCep });
+
+            if (!cep) {
+                dados.cep = null;
+                dados.logradouro = null;
+                dados.bairro = null;
+                dados.localidade = null;
+                dados.uf = null;
+            } else {
+                const cepViaCep = cep.slice(0, 8);
+                const endereco = await ClienteModel.buscarEnderecoPorCep(cepViaCep);
+
+                if (endereco && endereco.indisponivel)
+                    return res
+                        .status(400)
+                        .json({ erro: 'Serviço ViaCEP indisponível no momento.' });
+                if (!endereco) return res.status(400).json({ erro: `CEP ${cep} não encontrado.` });
+
+                dados.cep = String(cep);
+                dados.logradouro = endereco.logradouro || null;
+                dados.bairro = endereco.bairro || null;
+                dados.localidade = endereco.localidade || null;
+                dados.uf = endereco.uf || null;
             }
-            const endereco = await ClienteModel.buscarEnderecoPorCep(cep);
-
-            if (endereco && endereco.indisponivel)
-                return res.status(400).json({ erro: 'Serviço ViaCEP indisponível no momento.' });
-            if (!endereco) return res.status(400).json({ erro: `CEP ${cep} não encontrado.` });
-
-            dados.cep = String(cep);
-            dados.logradouro = endereco.logradouro || null;
-            dados.bairro = endereco.bairro || null;
-            dados.localidade = endereco.localidade || null;
-            dados.uf = endereco.uf || null;
         }
 
         if (!Object.keys(dados).length)
@@ -167,6 +244,9 @@ export const atualizar = async (req, res) => {
             }
             if (error.meta.target.includes('telefone')) {
                 return res.status(400).json({ erro: 'Telefone já cadastrado para outro cliente.' });
+            }
+            if (error.meta.target.includes('email')) {
+                return res.status(400).json({ erro: 'Email já cadastrado no sistema.' });
             }
         }
         console.error(error);
@@ -218,13 +298,13 @@ export const buscarClima = async (req, res) => {
             return res.status(404).json({ erro: 'Cliente não encontrado.' });
         }
 
-        if (!cliente.cep || !/^\d{8}$/.test(cliente.cep)) {
+        if (!cliente.cep || !/^\d{9}$/.test(cliente.cep)) {
             return res
                 .status(400)
-                .json({ erro: 'CEP deve conter exatamente 8 dígitos numéricos.' });
+                .json({ erro: 'CEP deve conter exatamente 9 dígitos numéricos.' });
         }
 
-        const endereco = await ClienteModel.buscarEnderecoPorCep(cliente.cep);
+        const endereco = await ClienteModel.buscarEnderecoPorCep(cliente.cep.slice(0, 8));
 
         if (endereco?.indisponivel) {
             return res.status(400).json({ erro: 'Serviço ViaCEP indisponível no momento.' });
