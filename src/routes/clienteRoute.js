@@ -6,6 +6,7 @@ const router = express.Router();
 router.post('/clientes', controller.criar);
 router.get('/clientes', controller.buscarTodos);
 router.get('/clientes/:id', controller.buscarPorId);
+router.get('/clientes/:id/clima', controller.buscarClima);
 router.put('/clientes/:id', controller.atualizar);
 router.delete('/clientes/:id', controller.deletar);
 

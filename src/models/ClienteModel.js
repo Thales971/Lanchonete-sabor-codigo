@@ -1,7 +1,6 @@
 import prisma from '../utils/prismaClient.js';
 
 export default class ClienteModel {
-
     constructor({
         id = null,
         nome,
@@ -13,9 +12,8 @@ export default class ClienteModel {
         bairro = null,
         localidade = null,
         uf = null,
-        ativo = true, } = {})
-
-    {
+        ativo = true,
+    } = {}) {
         this.id = id;
         this.nome = nome;
         this.telefone = telefone;
@@ -27,7 +25,7 @@ export default class ClienteModel {
         this.localidade = localidade;
         this.uf = uf;
         this.ativo = ativo;
-    };
+    }
 
     async criar() {
         return prisma.cliente.create({
@@ -43,21 +41,21 @@ export default class ClienteModel {
                 uf: this.uf,
             },
         });
-    };
+    }
 
     async atualizar(dados) {
         return prisma.cliente.update({
             where: { id: this.id },
             data: dados,
         });
-    };
+    }
 
     async deletar() {
         const pedidosAbertos = await prisma.pedido.findFirst({
             where: {
                 clienteId: this.id,
-                status: 'ABERTO'
-            }
+                status: 'ABERTO',
+            },
         });
 
         if (pedidosAbertos) {
@@ -65,7 +63,7 @@ export default class ClienteModel {
         }
 
         return prisma.cliente.delete({ where: { id: this.id } });
-    };
+    }
 
     static async buscarTodos(filtros = {}) {
         const where = {};
@@ -74,13 +72,13 @@ export default class ClienteModel {
         if (filtros.ativo !== undefined) where.ativo = filtros.ativo === 'true';
 
         return prisma.cliente.findMany({ where, orderBy: { id: 'asc' } });
-    };
+    }
 
     static async buscarPorId(id) {
         const data = await prisma.cliente.findUnique({ where: { id } });
         if (!data) return null;
         return new ClienteModel(data);
-    };
+    }
 
     static async buscarEnderecoPorCep(cep) {
         try {
@@ -91,4 +89,49 @@ export default class ClienteModel {
             return { indisponivel: true };
         }
     }
-};
+
+    static async buscarCoordenadasPorCidade(cidade) {
+        try {
+            const cidadeCodificada = encodeURIComponent(cidade);
+            const response = await fetch(
+                `https://geocoding-api.open-meteo.com/v1/search?name=${cidadeCodificada}&count=1&language=pt&countryCode=BR`,
+            );
+
+            if (!response.ok) return null;
+
+            const data = await response.json();
+
+            if (!data?.results?.length) return null;
+
+            return {
+                latitude: data.results[0].latitude,
+                longitude: data.results[0].longitude,
+            };
+        } catch (error) {
+            return null;
+        }
+    }
+
+    static async buscarClimaAtual(latitude, longitude) {
+        try {
+            const response = await fetch(
+                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weathercode&timezone=America/Sao_Paulo`,
+            );
+
+            if (!response.ok) return null;
+
+            const data = await response.json();
+            const temperatura = data?.current?.temperature_2m;
+            const weathercode = data?.current?.weathercode;
+
+            if (temperatura === undefined || weathercode === undefined) return null;
+
+            return {
+                temperatura,
+                weathercode,
+            };
+        } catch (error) {
+            return null;
+        }
+    }
+}

@@ -7,16 +7,16 @@ export const criar = async (req, res) => {
     try {
         const { clienteId } = req.body;
 
-        if (!clienteId)
-            return res.status(400).json({ erro: "O campo 'clienteId' é obrigatório." });
+        if (!clienteId) return res.status(400).json({ erro: "O campo 'clienteId' é obrigatório." });
 
         const cliente = await ClienteModel.buscarPorId(Number(clienteId));
 
-        if (!cliente)
-            return res.status(404).json({ erro: 'Cliente não encontrado.' });
+        if (!cliente) return res.status(404).json({ erro: 'Cliente não encontrado.' });
 
         if (!cliente.ativo)
-            return res.status(400).json({ erro: 'Não é possível criar pedido para um cliente inativo.' });
+            return res
+                .status(400)
+                .json({ erro: 'Não é possível criar pedido para um cliente inativo.' });
 
         const pedido = new PedidoModel({ clienteId: Number(clienteId) });
         const registro = await pedido.criar();
@@ -54,12 +54,12 @@ export const buscarPorId = async (req, res) => {
     try {
         const id = Number(req.params.id);
 
-        if (Number.isNaN(id)) return res.status(400).json({ erro: 'ID inválido. Informe um número válido.' });
+        if (Number.isNaN(id))
+            return res.status(400).json({ erro: 'ID inválido. Informe um número válido.' });
 
         const pedido = await PedidoModel.buscarPorId(id);
 
-        if (!pedido)
-            return res.status(404).json({ erro: 'Pedido não encontrado.' });
+        if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado.' });
 
         return res.status(200).json(pedido);
     } catch (error) {
@@ -68,41 +68,29 @@ export const buscarPorId = async (req, res) => {
     }
 };
 
-export const atualizar = async (req, res) => {
+export const cancelar = async (req, res) => {
     try {
         const id = Number(req.params.id);
 
-        if (Number.isNaN(id)) return res.status(400).json({ erro: 'ID inválido. Informe um número válido.' });
-
-        const { status } = req.body;
-
-        if (!status)
-            return res.status(400).json({ erro: "O campo 'status' é obrigatório." });
-
-        if (!statusValidos.includes(status))
-            return res.status(400).json({
-                erro: 'Status inválido. Use: ABERTO, PAGO ou CANCELADO.',
-            });
+        if (Number.isNaN(id))
+            return res.status(400).json({ erro: 'ID inválido. Informe um número válido.' });
 
         const pedido = await PedidoModel.buscarPorId(id);
 
-        if (!pedido)
-            return res.status(404).json({ erro: 'Pedido não encontrado.' });
+        if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado.' });
 
-        if (pedido.status === 'PAGO' || pedido.status === 'CANCELADO')
-            return res.status(400).json({
-                erro: 'Não é possível alterar pedido com status PAGO ou CANCELADO.',
-            });
+        if (pedido.status !== 'ABERTO') {
+            return res
+                .status(400)
+                .json({ erro: 'Só é possível cancelar pedidos com status ABERTO.' });
+        }
 
-        if (status === 'CANCELADO' && pedido.status !== 'ABERTO')
-            return res.status(400).json({ erro: 'Só pode cancelar pedido se estiver ABERTO.' });
-
-        const registro = await pedido.atualizar({ status });
+        const registro = await pedido.atualizar({ status: 'CANCELADO' });
 
         return res.status(200).json(registro);
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ erro: 'Erro ao atualizar pedido.' });
+        return res.status(500).json({ erro: 'Erro ao cancelar pedido.' });
     }
 };
 
@@ -110,12 +98,12 @@ export const deletar = async (req, res) => {
     try {
         const id = Number(req.params.id);
 
-        if (Number.isNaN(id)) return res.status(400).json({ erro: 'ID inválido. Informe um número válido.' });
+        if (Number.isNaN(id))
+            return res.status(400).json({ erro: 'ID inválido. Informe um número válido.' });
 
         const pedido = await PedidoModel.buscarPorId(id);
 
-        if (!pedido)
-            return res.status(404).json({ erro: 'Pedido não encontrado.' });
+        if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado.' });
 
         if (pedido.status === 'ABERTO')
             return res.status(400).json({
