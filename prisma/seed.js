@@ -12,8 +12,8 @@ async function main() {
     console.log('🌱 Resetando tabelas Cliente e Produto...');
 
     // Remove todos os registros existentes
-    await prisma.cliente.deleteMany();
-    await prisma.produto.deleteMany();
+    // await prisma.cliente.deleteMany();
+    // await prisma.produto.deleteMany();
 
     console.log('📦 Inserindo novos registros de clientes e produtos...');
 
