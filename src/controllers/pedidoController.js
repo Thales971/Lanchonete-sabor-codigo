@@ -18,6 +18,10 @@ export const criar = async (req, res) => {
                 .status(400)
                 .json({ erro: 'Não é possível criar pedido para um cliente inativo.' });
 
+        if (cliente.statusValidos !== 'ABERTO')
+            return res.status(400).json({ erro: 'O status de Criação precisa ser ABERTO para a criação.' });
+
+
         const pedido = new PedidoModel({ clienteId: Number(clienteId) });
         const registro = await pedido.criar();
 
