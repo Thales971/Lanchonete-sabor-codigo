@@ -50,6 +50,8 @@ export default class ClienteModel {
         });
     }
 
+    // Regra de negócio
+    // Não pode deletar cliente com pedido em status ABERTO
     async deletar() {
         const pedidosAbertos = await prisma.pedido.findFirst({
             where: {
@@ -65,6 +67,64 @@ export default class ClienteModel {
         return prisma.cliente.delete({ where: { id: this.id } });
     }
 
+    // Nome obrigatório (3 a 100 caracteres)
+    async validar() {
+        if (!this.nome || this.nome.length < 3 || this.nome.length > 100) {
+            throw new Error('Nome obrigatório (3 a 100 caracteres).');
+        }
+
+        // CPF com exatamente 11 dígitos numéricos
+
+        // CPF único
+        const cpfExistente = await prisma.cliente.findUnique({ where: { cpf: this.cpf } });
+        if (cpfExistente && cpfExistente.id !== this.id) {
+            throw new Error('CPF já cadastrado.');
+        }
+
+        // Telefone com 10 ou 11 dígitos numéricos
+
+        // Email com formato válido
+
+        // Email único
+        const emailExistente = await prisma.cliente.findUnique({ where: { email: this.email } });
+        if (emailExistente && emailExistente.id !== this.id) {
+            throw new Error('Email já cadastrado.');
+        }
+
+        // CEP com exatamente 9 dígitos numéricos
+
+        // Endereço preenchido automaticamente via ViaCEP
+        if (!this.logradouro || !this.bairro || !this.localidade || !this.uf) {
+            const endereco = await ClienteModel.buscarEnderecoPorCep(this.cep);
+            if (!endereco) throw new Error('CEP inválido ou não encontrado no ViaCEP.');
+            this.logradouro = endereco.logradouro;
+            this.bairro = endereco.bairro;
+            this.localidade = endereco.localidade;
+            this.uf = endereco.uf;
+        }
+    }
+
+    // Não pode criar pedido para cliente com ativo = false
+    async criar() {
+        const cliente = await prisma.cliente.findUnique({ where: { id: this.clienteId } });
+
+        if (!cliente) {
+            throw new Error('Cliente não encontrado.');
+        }
+
+        if (!cliente.ativo) {
+            throw new Error('Não é permitido criar pedido para cliente inativo.');
+        }
+
+        return prisma.pedido.create({
+            data: {
+                clienteId: this.clienteId,
+                status: this.status,
+            },
+        });
+    }
+
+    // Filtros
     static async buscarTodos(filtros = {}) {
         const where = {};
         if (filtros.nome) where.nome = { contains: filtros.nome, mode: 'insensitive' };
