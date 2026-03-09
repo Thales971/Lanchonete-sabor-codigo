@@ -9,15 +9,14 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-    console.log('🌱 Resetando tabelas Cliente e Produto...');
+    console.log('🌱 Resetando tabelas...');
 
-    // Remove todos os registros existentes
     await prisma.itemPedido.deleteMany();
-    await prisma.pedido.deleteMany();
-    await prisma.produto.deleteMany();
+    await prisma.pedidos.deleteMany();
+    await prisma.produtos.deleteMany();
     await prisma.cliente.deleteMany();
 
-    console.log('📦 Inserindo novos registros de clientes e produtos...');
+    console.log('📦 Inserindo novos registros de clientes...');
 
     await prisma.cliente.createMany({
         data: [
@@ -54,93 +53,98 @@ async function main() {
         ],
     });
 
-    console.log('Inserindo Produtos')
+    console.log('Inserindo Produtos...');
 
-    await prisma.produto.createMany({
+    await prisma.produtos.createMany({
         data: [
             {
                 nome: 'X-Burguer',
                 descricao: 'Hambúrguer com queijo e alface',
-                categoria: TipoCategoria.LANCHE,
-                preco: '15.5',
-                disponivel: true
+                categoria: 'LANCHE',
+                preco: 15.5,
+                disponivel: true,
             },
             {
                 nome: 'Refrigerante 350ml',
                 descricao: 'Bebida gaseificada',
-                categoria: TipoCategoria.BEBIDA,
-                preco: '5',
-                disponivel: true
+                categoria: 'BEBIDA',
+                preco: 5,
+                disponivel: true,
             },
             {
                 nome: 'Sorvete 2 bolas',
                 descricao: 'Sorvete de creme e chocolate',
-                categoria: TipoCategoria.SOBREMESA,
-                preco: '8',
-                disponivel: true
+                categoria: 'SOBREMESA',
+                preco: 8,
+                disponivel: true,
             },
             {
                 nome: 'Combo Família',
                 descricao: '4 lanches + 4 bebidas',
-                categoria: TipoCategoria.COMBO,
-                preco: '60',
-                disponivel: true
+                categoria: 'COMBO',
+                preco: 60,
+                disponivel: true,
             },
             {
                 nome: 'Salada',
                 descricao: 'Mix de folhas verdes',
                 categoria: 'LANCHE',
-                preco: '12',
-                disponivel: true
+                preco: 12,
+                disponivel: true,
             },
         ],
     });
-    console.log("pedidos sendo criados...")
 
-    await prisma.pedido.create({
-        data:[ {
-            clienteId: 1,
-            total: '12',
-            status: TipoStatus.ABERTO,
-            criadoEm: new Date(),
-        },
-        {
-            clienteId: 2,
-            total: '8',
-            status: TipoStatus.PAGO,
-            criadoEm: new Date(),
-        },
-        {
-            clienteId: 3,
-            total: '15.5',
-            status: TipoStatus.CANCELADO,
-            criadoEm: new Date(),
-        }
-    ]
+    console.log('Pedidos sendo criados...');
+
+    const clientes = await prisma.cliente.findMany({ orderBy: { id: 'asc' } });
+    const produtos = await prisma.produtos.findMany({ orderBy: { id: 'asc' } });
+
+    await prisma.pedidos.createMany({
+        data: [
+            {
+                clienteId: clientes[0].id,
+                total: 12,
+                status: 'ABERTO',
+            },
+            {
+                clienteId: clientes[1].id,
+                total: 8,
+                status: 'PAGO',
+            },
+            {
+                clienteId: clientes[2].id,
+                total: 15.5,
+                status: 'CANCELADO',
+            },
+        ],
     });
 
-    console.log("inserindo itens pedido...")
+    const pedidos = await prisma.pedidos.findMany({ orderBy: { id: 'asc' } });
 
-    await prisma.itemPedido.create({
-        data:[ {
-            pedidoId: 1,
-            produtoId: 5,
-            quantidade: 1,
-            precoUnitario: '12',
-        },
-        {
-            pedidoId: 2,
-            produtoId: 3,
-            quantidade: 1,
-            precoUnitario: '8', 
-        },
-        {
-            pedidoId: 3,
-            produtoId: 1,
-            quantidade: 1,
-            precoUnitario: '15.5'
-        }
-    ]
+    console.log('Inserindo itens pedido...');
+
+    await prisma.itemPedido.createMany({
+        data: [
+            {
+                pedidoId: pedidos[0].id,
+                produtoId: produtos[4].id,
+                quantidade: 1,
+                precoUnitario: 12,
+            },
+            {
+                pedidoId: pedidos[1].id,
+                produtoId: produtos[2].id,
+                quantidade: 1,
+                precoUnitario: 8,
+            },
+            {
+                pedidoId: pedidos[2].id,
+                produtoId: produtos[0].id,
+                quantidade: 1,
+                precoUnitario: 15.5,
+            },
+        ],
     });
 
     console.log('✅ Seed concluído!');

@@ -9,8 +9,6 @@ export default class ItemPedidoModel {
         this.precoUnitario = precoUnitario;
     }
 
-    // ── Validações (regras de negócio) ──
-
     static validarQuantidade(quantidade) {
         const quantidadeNumero = Number(quantidade);
         if (!Number.isInteger(quantidadeNumero) || quantidadeNumero <= 0 || quantidadeNumero > 99) {
@@ -27,27 +25,19 @@ export default class ItemPedidoModel {
         return null;
     }
 
-    /**
-     * Verifica se o pedido está ABERTO (regra para adicionar/alterar/remover itens).
-     */
     static verificarPedidoAberto(pedido) {
         if (pedido.status !== 'ABERTO') {
-            return 'Não pode adicionar itens se o pedido estiver PAGO ou CANCELADO.';
+            return 'Não é possível adicionar itens a um pedido PAGO ou CANCELADO.';
         }
         return null;
     }
 
-    /**
-     * Verifica se o produto está disponível.
-     */
     static verificarProdutoDisponivel(produto) {
         if (!produto.disponivel) {
             return 'Não pode adicionar produto com disponivel = false ao pedido.';
         }
         return null;
     }
-
-    // ── CRUD ──
 
     async criar() {
         return prisma.itemPedido.create({
@@ -71,8 +61,6 @@ export default class ItemPedidoModel {
         return prisma.itemPedido.delete({ where: { id: this.id } });
     }
 
-    // ── Consultas estáticas ──
-
     static async buscarTodos(filtros = {}) {
         const where = {};
 
@@ -90,11 +78,11 @@ export default class ItemPedidoModel {
     }
 
     static async buscarPedidoPorId(id) {
-        return prisma.pedido.findUnique({ where: { id } });
+        return prisma.pedidos.findUnique({ where: { id } });
     }
 
     static async buscarProdutoPorId(id) {
-        return prisma.produto.findUnique({ where: { id } });
+        return prisma.produtos.findUnique({ where: { id } });
     }
 
     static async recalcularTotalDoPedido(pedidoId) {
@@ -107,7 +95,7 @@ export default class ItemPedidoModel {
             return acumulador + Number(item.precoUnitario) * item.quantidade;
         }, 0);
 
-        return prisma.pedido.update({
+        return prisma.pedidos.update({
             where: { id: pedidoId },
             data: { total },
         });

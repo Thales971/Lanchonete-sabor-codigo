@@ -217,10 +217,10 @@ export const buscarClima = async (req, res) => {
             return res.status(404).json({ erro: 'Cliente não encontrado.' });
         }
 
-        if (!cliente.cep || !/^\d{8}$/.test(cliente.cep)) {
+        if (!cliente.cep || !/^\d{9}$/.test(cliente.cep)) {
             return res
                 .status(400)
-                .json({ erro: 'CEP deve conter exatamente 8 dígitos numéricos.' });
+                .json({ erro: 'CEP deve conter exatamente 9 dígitos numéricos.' });
         }
 
         const endereco = await ClienteModel.buscarEnderecoPorCep(cliente.cep);

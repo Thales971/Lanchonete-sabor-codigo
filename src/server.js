@@ -14,7 +14,6 @@ app.get('/', (req, res) => {
     res.send('🚀 API funcionando');
 });
 
-// Rotas
 app.use('/api', clienteRoutes);
 app.use('/api', produtoRoutes);
 app.use('/api', pedidoRoutes);

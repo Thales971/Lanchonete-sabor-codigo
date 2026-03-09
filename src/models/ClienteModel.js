@@ -31,8 +31,6 @@ export default class ClienteModel {
         this.ativo = ativo;
     }
 
-    // ── Validações (regras de negócio) ──
-
     static normalizarTexto(valor) {
         return typeof valor === 'string' ? valor.trim() : valor;
     }
@@ -46,7 +44,7 @@ export default class ClienteModel {
     }
 
     static validarTelefone(telefone) {
-        if (!telefone) return "O campo 'telefone' é obrigatório.";
+        if (!telefone) return null;
         if (
             !regexSomenteDigitos.test(telefone) ||
             (telefone.length !== 10 && telefone.length !== 11)
@@ -57,13 +55,13 @@ export default class ClienteModel {
     }
 
     static validarEmail(email) {
-        if (!email) return "O campo 'email' é obrigatório.";
+        if (!email) return null;
         if (!regexEmail.test(email)) return 'Email informado é inválido.';
         return null;
     }
 
     static validarCpf(cpf) {
-        if (!cpf) return "O campo 'cpf' é obrigatório.";
+        if (!cpf) return null;
         if (!regexSomenteDigitos.test(cpf) || cpf.length !== 11) {
             return 'CPF deve conter exatamente 11 dígitos numéricos.';
         }
@@ -72,16 +70,12 @@ export default class ClienteModel {
 
     static validarCep(cep) {
         if (!cep) return null;
-        if (!regexSomenteDigitos.test(cep) || cep.length !== 8) {
-            return 'CEP deve conter exatamente 8 dígitos numéricos.';
+        if (!regexSomenteDigitos.test(cep) || cep.length !== 9) {
+            return 'CEP deve conter exatamente 9 dígitos numéricos.';
         }
         return null;
     }
 
-    /**
-     * Valida todos os campos para criação.
-     * Retorna a primeira mensagem de erro encontrada ou null.
-     */
     validarCriacao() {
         return (
             ClienteModel.validarNome(this.nome) ||
@@ -92,8 +86,6 @@ export default class ClienteModel {
             null
         );
     }
-
-    // ── CRUD ──
 
     async criar() {
         return prisma.cliente.create({
@@ -118,9 +110,8 @@ export default class ClienteModel {
         });
     }
 
-    // Regra de negócio: Não pode deletar cliente com pedido em status ABERTO
     async deletar() {
-        const pedidosAbertos = await prisma.pedido.findFirst({
+        const pedidosAbertos = await prisma.pedidos.findFirst({
             where: {
                 clienteId: this.id,
                 status: 'ABERTO',
@@ -134,8 +125,6 @@ export default class ClienteModel {
         await prisma.cliente.delete({ where: { id: this.id } });
         return { sucesso: true };
     }
-
-    // ── Consultas estáticas ──
 
     static async buscarTodos(filtros = {}) {
         const where = {};
@@ -151,8 +140,6 @@ export default class ClienteModel {
         if (!data) return null;
         return new ClienteModel(data);
     }
-
-    // ── Integrações externas ──
 
     static async buscarEnderecoPorCep(cep) {
         try {
@@ -208,8 +195,6 @@ export default class ClienteModel {
             return null;
         }
     }
-
-    // ── Sugestão de clima (regra de negócio) ──
 
     static montarSugestaoClima(temperatura, chove) {
         if (chove) {
