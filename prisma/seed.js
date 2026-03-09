@@ -104,6 +104,7 @@ async function main() {
             preco: 12,
         },
     });
+    
 
 
     console.log('✅ Seed concluído!');
