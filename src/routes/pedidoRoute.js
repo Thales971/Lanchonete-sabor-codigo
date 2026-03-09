@@ -7,5 +7,6 @@ router.post('/pedidos', controller.criar);
 router.get('/pedidos', controller.buscarTodos);
 router.get('/pedidos/:id', controller.buscarPorId);
 router.put('/pedidos/:id/cancelar', controller.cancelar);
+router.delete('/pedidos/:id', controller.deletar);
 
 export default router;

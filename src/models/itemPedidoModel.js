@@ -9,6 +9,46 @@ export default class ItemPedidoModel {
         this.precoUnitario = precoUnitario;
     }
 
+    // ── Validações (regras de negócio) ──
+
+    static validarQuantidade(quantidade) {
+        const quantidadeNumero = Number(quantidade);
+        if (!Number.isInteger(quantidadeNumero) || quantidadeNumero <= 0 || quantidadeNumero > 99) {
+            return 'Quantidade deve ser entre 1 e 99.';
+        }
+        return null;
+    }
+
+    static validarQuantidadeAtualizacao(quantidade) {
+        const quantidadeNumero = Number(quantidade);
+        if (!Number.isInteger(quantidadeNumero) || quantidadeNumero <= 0) {
+            return 'Quantidade deve ser maior que 0.';
+        }
+        return null;
+    }
+
+    /**
+     * Verifica se o pedido está ABERTO (regra para adicionar/alterar/remover itens).
+     */
+    static verificarPedidoAberto(pedido) {
+        if (pedido.status !== 'ABERTO') {
+            return 'Não pode adicionar itens se o pedido estiver PAGO ou CANCELADO.';
+        }
+        return null;
+    }
+
+    /**
+     * Verifica se o produto está disponível.
+     */
+    static verificarProdutoDisponivel(produto) {
+        if (!produto.disponivel) {
+            return 'Não pode adicionar produto com disponivel = false ao pedido.';
+        }
+        return null;
+    }
+
+    // ── CRUD ──
+
     async criar() {
         return prisma.itemPedido.create({
             data: {
@@ -30,6 +70,8 @@ export default class ItemPedidoModel {
     async deletar() {
         return prisma.itemPedido.delete({ where: { id: this.id } });
     }
+
+    // ── Consultas estáticas ──
 
     static async buscarTodos(filtros = {}) {
         const where = {};

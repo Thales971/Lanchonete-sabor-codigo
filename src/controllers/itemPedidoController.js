@@ -14,35 +14,29 @@ export const criar = async (req, res) => {
 
         const pedidoIdNumero = Number(pedidoId);
         const produtoIdNumero = Number(produtoId);
-        const quantidadeNumero = Number(quantidade);
 
         if (Number.isNaN(pedidoIdNumero) || Number.isNaN(produtoIdNumero))
             return res.status(400).json({ erro: 'ID inválido. Informe um número válido.' });
 
-        if (!Number.isInteger(quantidadeNumero) || quantidadeNumero <= 0 || quantidadeNumero > 99)
-            return res.status(400).json({ erro: 'Quantidade deve ser entre 1 e 99.' });
+        const erroQuantidade = ItemPedidoModel.validarQuantidade(quantidade);
+        if (erroQuantidade) return res.status(400).json({ erro: erroQuantidade });
 
         const pedido = await ItemPedidoModel.buscarPedidoPorId(pedidoIdNumero);
         if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado.' });
 
-        if (pedido.status !== 'ABERTO') {
-            return res
-                .status(400)
-                .json({ erro: 'Não pode adicionar itens se o pedido estiver PAGO ou CANCELADO.' });
-        }
+        const erroPedido = ItemPedidoModel.verificarPedidoAberto(pedido);
+        if (erroPedido) return res.status(400).json({ erro: erroPedido });
 
         const produto = await ItemPedidoModel.buscarProdutoPorId(produtoIdNumero);
         if (!produto) return res.status(404).json({ erro: 'Produto não encontrado.' });
 
-        if (!produto.disponivel)
-            return res
-                .status(400)
-                .json({ erro: 'Não pode adicionar produto com disponivel = false ao pedido.' });
+        const erroProduto = ItemPedidoModel.verificarProdutoDisponivel(produto);
+        if (erroProduto) return res.status(400).json({ erro: erroProduto });
 
         const itemPedido = new ItemPedidoModel({
             pedidoId: pedidoIdNumero,
             produtoId: produtoIdNumero,
-            quantidade: quantidadeNumero,
+            quantidade: Number(quantidade),
             precoUnitario: produto.preco,
         });
 
@@ -104,19 +98,15 @@ export const atualizar = async (req, res) => {
         const pedido = await ItemPedidoModel.buscarPedidoPorId(itemPedido.pedidoId);
         if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado.' });
 
-        if (pedido.status !== 'ABERTO') {
-            return res
-                .status(400)
-                .json({ erro: 'Não pode adicionar itens se o pedido estiver PAGO ou CANCELADO.' });
-        }
+        const erroPedido = ItemPedidoModel.verificarPedidoAberto(pedido);
+        if (erroPedido) return res.status(400).json({ erro: erroPedido });
 
         const dadosAtualizacao = {};
 
         if (quantidade !== undefined) {
-            const quantidadeNumero = Number(quantidade);
-            if (!Number.isInteger(quantidadeNumero) || quantidadeNumero <= 0)
-                return res.status(400).json({ erro: 'Quantidade deve ser maior que 0.' });
-            dadosAtualizacao.quantidade = quantidadeNumero;
+            const erroQuantidade = ItemPedidoModel.validarQuantidadeAtualizacao(quantidade);
+            if (erroQuantidade) return res.status(400).json({ erro: erroQuantidade });
+            dadosAtualizacao.quantidade = Number(quantidade);
         }
 
         if (produtoId !== undefined) {
@@ -127,11 +117,8 @@ export const atualizar = async (req, res) => {
             const produto = await ItemPedidoModel.buscarProdutoPorId(produtoIdNumero);
             if (!produto) return res.status(404).json({ erro: 'Produto não encontrado.' });
 
-            if (!produto.disponivel) {
-                return res
-                    .status(400)
-                    .json({ erro: 'Não pode adicionar produto com disponivel = false ao pedido.' });
-            }
+            const erroProduto = ItemPedidoModel.verificarProdutoDisponivel(produto);
+            if (erroProduto) return res.status(400).json({ erro: erroProduto });
 
             dadosAtualizacao.produtoId = produtoIdNumero;
             dadosAtualizacao.precoUnitario = produto.preco;

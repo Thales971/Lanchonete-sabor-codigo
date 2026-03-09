@@ -1,54 +1,24 @@
 import ProdutoModel from '../models/ProdutoModel.js';
 
-const categoriasValidas = ['LANCHE', 'BEBIDA', 'SOBREMESA', 'COMBO'];
-
 export const criar = async (req, res) => {
     try {
         const { nome, descricao, categoria, preco, disponivel = true } = req.body;
-
-        if (!nome) return res.status(400).json({ erro: "O campo 'nome' é obrigatório." });
-        if (nome.length < 3)
-            return res
-                .status(400)
-                .json({ erro: "O campo 'nome' deve ter no mínimo 3 caracteres." });
-
-        if (descricao !== undefined && descricao !== null && String(descricao).length > 255) {
-            return res
-                .status(400)
-                .json({ erro: "O campo 'descricao' deve ter no máximo 255 caracteres." });
-        }
-
-        if (!categoria || !categoriasValidas.includes(categoria)) {
-            return res.status(400).json({
-                erro: 'Categoria inválida. Use: LANCHE, BEBIDA, SOBREMESA ou COMBO.',
-            });
-        }
-
-        if (preco === undefined || preco === null)
-            return res.status(400).json({ erro: "O campo 'preco' é obrigatório." });
-
-        const precoNum = parseFloat(preco);
-        if (isNaN(precoNum) || precoNum <= 0)
-            return res.status(400).json({ erro: 'Preco deve ser maior que 0.' });
-
-        const partes = String(preco).split('.');
-        if (partes[1] && partes[1].length > 2)
-            return res.status(400).json({ erro: 'Preco deve ter no máximo 2 casas decimais.' });
 
         const produto = new ProdutoModel({
             nome,
             descricao: descricao || null,
             categoria,
-            preco: precoNum,
+            preco,
             disponivel,
         });
+
+        const erroValidacao = produto.validarCriacao();
+        if (erroValidacao) return res.status(400).json({ erro: erroValidacao });
+
         const registro = await produto.criar();
 
         return res.status(201).json(registro);
     } catch (error) {
-        if (error.message === 'PRECO_INVALIDO') {
-            return res.status(400).json({ erro: 'Preco deve ser maior que 0.' });
-        }
         console.error('Erro ao criar:', error);
         return res.status(500).json({ erro: 'Erro interno ao salvar o registro.' });
     }
@@ -107,36 +77,24 @@ export const atualizar = async (req, res) => {
         const dados = {};
 
         if (nome !== undefined) {
-            if (!nome || nome.length < 3)
-                return res
-                    .status(400)
-                    .json({ erro: "O campo 'nome' deve ter no mínimo 3 caracteres." });
+            const erroNome = ProdutoModel.validarNome(nome);
+            if (erroNome) return res.status(400).json({ erro: erroNome });
             dados.nome = nome;
         }
         if (descricao !== undefined) {
-            if (descricao !== null && String(descricao).length > 255) {
-                return res
-                    .status(400)
-                    .json({ erro: "O campo 'descricao' deve ter no máximo 255 caracteres." });
-            }
+            const erroDescricao = ProdutoModel.validarDescricao(descricao);
+            if (erroDescricao) return res.status(400).json({ erro: erroDescricao });
             dados.descricao = descricao || null;
         }
         if (categoria !== undefined) {
-            if (!categoriasValidas.includes(categoria)) {
-                return res
-                    .status(400)
-                    .json({ erro: 'Categoria inválida. Use: LANCHE, BEBIDA, SOBREMESA ou COMBO.' });
-            }
+            const erroCategoria = ProdutoModel.validarCategoria(categoria);
+            if (erroCategoria) return res.status(400).json({ erro: erroCategoria });
             dados.categoria = categoria;
         }
         if (preco !== undefined) {
-            const precoNum = parseFloat(preco);
-            if (isNaN(precoNum) || precoNum <= 0)
-                return res.status(400).json({ erro: 'Preco deve ser maior que 0.' });
-            const partes = String(preco).split('.');
-            if (partes[1] && partes[1].length > 2)
-                return res.status(400).json({ erro: 'Preco deve ter no máximo 2 casas decimais.' });
-            dados.preco = precoNum;
+            const erroPreco = ProdutoModel.validarPreco(preco);
+            if (erroPreco) return res.status(400).json({ erro: erroPreco });
+            dados.preco = parseFloat(preco);
         }
         if (disponivel !== undefined) dados.disponivel = disponivel;
 
@@ -146,11 +104,10 @@ export const atualizar = async (req, res) => {
 
         const registro = await produto.atualizar(dados);
 
+        if (registro.erro) return res.status(400).json({ erro: registro.erro });
+
         return res.status(200).json(registro);
     } catch (error) {
-        if (error.message === 'PRECO_INVALIDO') {
-            return res.status(400).json({ erro: 'Preco deve ser maior que 0.' });
-        }
         console.error('Erro ao atualizar:', error);
         return res.status(500).json({ erro: 'Erro ao atualizar registro.' });
     }
@@ -169,15 +126,12 @@ export const deletar = async (req, res) => {
             return res.status(404).json({ erro: 'Produto não encontrado.' });
         }
 
-        await produto.deletar();
+        const resultado = await produto.deletar();
+
+        if (resultado.erro) return res.status(400).json({ erro: resultado.erro });
 
         return res.status(200).json({ mensagem: 'Produto removido com sucesso.' });
     } catch (error) {
-        if (error.message === 'PRODUTO_EM_PEDIDO_ABERTO') {
-            return res
-                .status(400)
-                .json({ erro: 'Não pode deletar produto vinculado a pedido ABERTO.' });
-        }
         console.error('Erro ao deletar:', error);
         return res.status(500).json({ erro: 'Erro ao deletar registro.' });
     }
