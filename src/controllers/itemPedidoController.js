@@ -1,4 +1,4 @@
-import ItemPedidoModel from '../models/itemPedidoModel.js';
+import ItemPedidoModel from '../models/ItemPedidoModel.js';
 
 export const criar = async (req, res) => {
     try {
