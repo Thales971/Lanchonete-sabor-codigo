@@ -50,8 +50,6 @@ export default class ClienteModel {
         });
     }
 
-    // Regra de negócio
-    // Não pode deletar cliente com pedido em status ABERTO
     async deletar() {
         const pedidosAbertos = await prisma.pedido.findFirst({
             where: {
@@ -67,33 +65,30 @@ export default class ClienteModel {
         return prisma.cliente.delete({ where: { id: this.id } });
     }
 
-    // Nome obrigatório (3 a 100 caracteres)
     async validar() {
         if (!this.nome || this.nome.length < 3 || this.nome.length > 100) {
             throw new Error('Nome obrigatório (3 a 100 caracteres).');
         }
 
-        // CPF com exatamente 11 dígitos numéricos
+        if (cliente.cpf.length !== 11) {
+            return res.status(200).json({message: 'O CPF deve conter exatamente 11 digitos'})
+        }
 
-        // CPF único
         const cpfExistente = await prisma.cliente.findUnique({ where: { cpf: this.cpf } });
         if (cpfExistente && cpfExistente.id !== this.id) {
             throw new Error('CPF já cadastrado.');
         }
-
-        // Telefone com 10 ou 11 dígitos numéricos
-
-        // Email com formato válido
-
-        // Email único
+        if (cliente.telefone.length !== 11) {
+            return res.status(200).json({message:'O número de telefone deve conter 11 digitos'})
+        }
         const emailExistente = await prisma.cliente.findUnique({ where: { email: this.email } });
         if (emailExistente && emailExistente.id !== this.id) {
             throw new Error('Email já cadastrado.');
         }
+        if (cliente.cep.length !== 9) {
+            return res.status(200).json({message: 'O CEP deve conter exatamente 9 dígitos'})
+        }
 
-        // CEP com exatamente 9 dígitos numéricos
-
-        // Endereço preenchido automaticamente via ViaCEP
         if (!this.logradouro || !this.bairro || !this.localidade || !this.uf) {
             const endereco = await ClienteModel.buscarEnderecoPorCep(this.cep);
             if (!endereco) throw new Error('CEP inválido ou não encontrado no ViaCEP.');
@@ -104,7 +99,6 @@ export default class ClienteModel {
         }
     }
 
-    // Não pode criar pedido para cliente com ativo = false
     async criar() {
         const cliente = await prisma.cliente.findUnique({ where: { id: this.clienteId } });
 
@@ -124,7 +118,6 @@ export default class ClienteModel {
         });
     }
 
-    // Filtros
     static async buscarTodos(filtros = {}) {
         const where = {};
         if (filtros.nome) where.nome = { contains: filtros.nome, mode: 'insensitive' };

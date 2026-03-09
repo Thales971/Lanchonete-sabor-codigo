@@ -84,7 +84,6 @@ export const criar = async (req, res) => {
 
         let endereco = {};
         if (cep) {
-            // ViaCEP trabalha com 8 digitos; usamos os 8 iniciais mantendo a regra de entrada em 9.
             const cepViaCep = cep.slice(0, 8);
             endereco = await ClienteModel.buscarEnderecoPorCep(cepViaCep);
             if (endereco && endereco.indisponivel)
