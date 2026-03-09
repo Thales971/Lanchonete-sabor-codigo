@@ -46,3 +46,30 @@
 | `migrate dev`   | ❌ Não          | ✅ Sim          | Alterar schema |
 | `db seed`       | ❌ Não          | ❌ Não          | Popular dados  |
 | `migrate reset` | ✅ SIM          | ❌ Não          | DEV only       |
+
+
+
+## Clientes Routes
+router.post('/clientes', autenticarApiKey, controller.criar);
+router.get('/clientes', autenticarApiKey, controller.buscarTodos);👌
+router.get('/clientes/:id', autenticarApiKey, controller.buscarPorId);👌
+router.get('/clientes/:id/clima', autenticarApiKey, controller.buscarClima);
+router.put('/clientes/:id', autenticarApiKey, controller.atualizar);👌
+router.delete('/clientes/:id', autenticarApiKey, controller.deletar);👌
+
+## Item Pedido Routes
+router.post('/pedidos/:id/itens', controller.criar);
+router.delete('/pedidos/:id/itens/:itemId', controller.deletar);
+
+## Pedido Routes
+router.post('/pedidos', controller.criar);
+router.get('/pedidos', controller.buscarTodos);
+router.get('/pedidos/:id', controller.buscarPorId);
+router.put('/pedidos/:id/cancelar', controller.cancelar);
+
+## Produto Routes
+router.post("/produtos", controller.criar);👌
+router.get("/produtos", controller.buscarTodos);👌
+router.get("/produtos/:id", controller.buscarPorId);👌
+router.put("/produtos/:id", controller.atualizar);👌
+router.delete("/produtos/:id", controller.deletar);👌

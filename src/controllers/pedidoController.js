@@ -1,7 +1,4 @@
 import PedidoModel from '../models/pedidoModel.js';
-import ClienteModel from '../models/ClienteModel.js';
-
-const statusValidos = ['ABERTO', 'PAGO', 'CANCELADO'];
 
 export const criar = async (req, res) => {
     try {
@@ -9,21 +6,13 @@ export const criar = async (req, res) => {
 
         if (!clienteId) return res.status(400).json({ erro: "O campo 'clienteId' é obrigatório." });
 
-        const cliente = await ClienteModel.buscarPorId(Number(clienteId));
-
-        if (!cliente) return res.status(404).json({ erro: 'Cliente não encontrado.' });
-
-        if (!cliente.ativo)
-            return res
-                .status(400)
-                .json({ erro: 'Não é possível criar pedido para um cliente inativo.' });
-
-        if (cliente.statusValidos !== 'ABERTO')
-            return res.status(400).json({ erro: 'O status de Criação precisa ser ABERTO para a criação.' });
-
-
         const pedido = new PedidoModel({ clienteId: Number(clienteId) });
         const registro = await pedido.criar();
+
+        if (registro.erro) {
+            const status = registro.erro.includes('não encontrado') ? 404 : 400;
+            return res.status(status).json({ erro: registro.erro });
+        }
 
         return res.status(201).json(registro);
     } catch (error) {
@@ -36,10 +25,8 @@ export const buscarTodos = async (req, res) => {
     try {
         const { clienteId, status } = req.query;
 
-        if (status && !statusValidos.includes(status))
-            return res.status(400).json({
-                erro: 'Status inválido. Use: ABERTO, PAGO ou CANCELADO.',
-            });
+        const erroStatus = PedidoModel.validarStatus(status);
+        if (erroStatus) return res.status(400).json({ erro: erroStatus });
 
         const registros = await PedidoModel.buscarTodos({ clienteId, status });
 
@@ -83,13 +70,9 @@ export const cancelar = async (req, res) => {
 
         if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado.' });
 
-        if (pedido.status !== 'ABERTO') {
-            return res
-                .status(400)
-                .json({ erro: 'Só é possível cancelar pedidos com status ABERTO.' });
-        }
+        const registro = await pedido.cancelar();
 
-        const registro = await pedido.atualizar({ status: 'CANCELADO' });
+        if (registro.erro) return res.status(400).json({ erro: registro.erro });
 
         return res.status(200).json(registro);
     } catch (error) {
@@ -109,12 +92,9 @@ export const deletar = async (req, res) => {
 
         if (!pedido) return res.status(404).json({ erro: 'Pedido não encontrado.' });
 
-        if (pedido.status === 'ABERTO')
-            return res.status(400).json({
-                erro: 'Não é possível excluir um pedido com status ABERTO. Cancele-o primeiro.',
-            });
+        const resultado = await pedido.deletar();
 
-        await pedido.deletar();
+        if (resultado.erro) return res.status(400).json({ erro: resultado.erro });
 
         return res.status(200).json({ mensagem: 'Pedido removido com sucesso.' });
     } catch (error) {

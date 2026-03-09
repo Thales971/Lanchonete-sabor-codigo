@@ -1,5 +1,9 @@
 import prisma from '../utils/prismaClient.js';
 
+const codigosChuva = new Set([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]);
+const regexSomenteDigitos = /^\d+$/;
+const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default class ClienteModel {
     constructor({
         id = null,
@@ -27,6 +31,70 @@ export default class ClienteModel {
         this.ativo = ativo;
     }
 
+    // ── Validações (regras de negócio) ──
+
+    static normalizarTexto(valor) {
+        return typeof valor === 'string' ? valor.trim() : valor;
+    }
+
+    static validarNome(nome) {
+        if (!nome) return "O campo 'nome' é obrigatório.";
+        if (nome.length < 3 || nome.length > 100) {
+            return "O campo 'nome' deve conter entre 3 e 100 caracteres.";
+        }
+        return null;
+    }
+
+    static validarTelefone(telefone) {
+        if (!telefone) return "O campo 'telefone' é obrigatório.";
+        if (
+            !regexSomenteDigitos.test(telefone) ||
+            (telefone.length !== 10 && telefone.length !== 11)
+        ) {
+            return "O campo 'telefone' deve conter 10 ou 11 dígitos numéricos.";
+        }
+        return null;
+    }
+
+    static validarEmail(email) {
+        if (!email) return "O campo 'email' é obrigatório.";
+        if (!regexEmail.test(email)) return 'Email informado é inválido.';
+        return null;
+    }
+
+    static validarCpf(cpf) {
+        if (!cpf) return "O campo 'cpf' é obrigatório.";
+        if (!regexSomenteDigitos.test(cpf) || cpf.length !== 11) {
+            return 'CPF deve conter exatamente 11 dígitos numéricos.';
+        }
+        return null;
+    }
+
+    static validarCep(cep) {
+        if (!cep) return null;
+        if (!regexSomenteDigitos.test(cep) || cep.length !== 8) {
+            return 'CEP deve conter exatamente 8 dígitos numéricos.';
+        }
+        return null;
+    }
+
+    /**
+     * Valida todos os campos para criação.
+     * Retorna a primeira mensagem de erro encontrada ou null.
+     */
+    validarCriacao() {
+        return (
+            ClienteModel.validarNome(this.nome) ||
+            ClienteModel.validarTelefone(this.telefone) ||
+            ClienteModel.validarEmail(this.email) ||
+            ClienteModel.validarCpf(this.cpf) ||
+            ClienteModel.validarCep(this.cep) ||
+            null
+        );
+    }
+
+    // ── CRUD ──
+
     async criar() {
         return prisma.cliente.create({
             data: {
@@ -50,6 +118,8 @@ export default class ClienteModel {
         });
     }
 
+    // Regra de negócio
+    // Não pode deletar cliente com pedido em status ABERTO
     async deletar() {
         const pedidosAbertos = await prisma.pedido.findFirst({
             where: {
@@ -65,30 +135,33 @@ export default class ClienteModel {
         return prisma.cliente.delete({ where: { id: this.id } });
     }
 
+    // Nome obrigatório (3 a 100 caracteres)
     async validar() {
         if (!this.nome || this.nome.length < 3 || this.nome.length > 100) {
             throw new Error('Nome obrigatório (3 a 100 caracteres).');
         }
 
-        if (cliente.cpf.length !== 11) {
-            return res.status(200).json({message: 'O CPF deve conter exatamente 11 digitos'})
-        }
+        // CPF com exatamente 11 dígitos numéricos
 
+        // CPF único
         const cpfExistente = await prisma.cliente.findUnique({ where: { cpf: this.cpf } });
         if (cpfExistente && cpfExistente.id !== this.id) {
             throw new Error('CPF já cadastrado.');
         }
-        if (cliente.telefone.length !== 11) {
-            return res.status(200).json({message:'O número de telefone deve conter 11 digitos'})
-        }
+
+        // Telefone com 10 ou 11 dígitos numéricos
+
+        // Email com formato válido
+
+        // Email único
         const emailExistente = await prisma.cliente.findUnique({ where: { email: this.email } });
         if (emailExistente && emailExistente.id !== this.id) {
             throw new Error('Email já cadastrado.');
         }
-        if (cliente.cep.length !== 9) {
-            return res.status(200).json({message: 'O CEP deve conter exatamente 9 dígitos'})
-        }
 
+        // CEP com exatamente 9 dígitos numéricos
+
+        // Endereço preenchido automaticamente via ViaCEP
         if (!this.logradouro || !this.bairro || !this.localidade || !this.uf) {
             const endereco = await ClienteModel.buscarEnderecoPorCep(this.cep);
             if (!endereco) throw new Error('CEP inválido ou não encontrado no ViaCEP.');
@@ -99,6 +172,7 @@ export default class ClienteModel {
         }
     }
 
+    // Não pode criar pedido para cliente com ativo = false
     async criar() {
         const cliente = await prisma.cliente.findUnique({ where: { id: this.clienteId } });
 
@@ -118,6 +192,7 @@ export default class ClienteModel {
         });
     }
 
+    // Filtros
     static async buscarTodos(filtros = {}) {
         const where = {};
         if (filtros.nome) where.nome = { contains: filtros.nome, mode: 'insensitive' };
@@ -132,6 +207,8 @@ export default class ClienteModel {
         if (!data) return null;
         return new ClienteModel(data);
     }
+
+    // ── Integrações externas ──
 
     static async buscarEnderecoPorCep(cep) {
         try {
@@ -186,5 +263,24 @@ export default class ClienteModel {
         } catch (error) {
             return null;
         }
+    }
+
+    // ── Sugestão de clima (regra de negócio) ──
+
+    static montarSugestaoClima(temperatura, chove) {
+        if (chove) {
+            return '🌧 Dia chuvoso! Ofereca promocoes para delivery.';
+        }
+        if (temperatura >= 28) {
+            return '🌞 Dia quente! Destaque combos com bebida gelada.';
+        }
+        if (temperatura <= 18) {
+            return '🥶 Dia frio! Destaque cafes e lanches quentes.';
+        }
+        return '🌤 Clima agradavel! Aproveite para divulgar combos da casa.';
+    }
+
+    static get codigosChuva() {
+        return codigosChuva;
     }
 }

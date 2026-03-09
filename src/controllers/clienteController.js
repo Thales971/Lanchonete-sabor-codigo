@@ -1,86 +1,17 @@
 import ClienteModel from '../models/ClienteModel.js';
 
-const codigosChuva = new Set([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]);
-const regexSomenteDigitos = /^\d+$/;
-const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const normalizarTexto = (valor) => (typeof valor === 'string' ? valor.trim() : valor);
-
-const validarNome = (nome) => {
-    if (!nome) return "O campo 'nome' é obrigatório.";
-    if (nome.length < 3 || nome.length > 100) {
-        return "O campo 'nome' deve conter entre 3 e 100 caracteres.";
-    }
-    return null;
-};
-
-const validarTelefone = (telefone) => {
-    if (!telefone) return "O campo 'telefone' é obrigatório.";
-    if (!regexSomenteDigitos.test(telefone) || (telefone.length !== 10 && telefone.length !== 11)) {
-        return "O campo 'telefone' deve conter 10 ou 11 dígitos numéricos.";
-    }
-    return null;
-};
-
-const validarEmail = (email) => {
-    if (!email) return "O campo 'email' é obrigatório.";
-    if (!regexEmail.test(email)) return 'Email informado é inválido.';
-    return null;
-};
-
-const validarCpf = (cpf) => {
-    if (!cpf) return "O campo 'cpf' é obrigatório.";
-    if (!regexSomenteDigitos.test(cpf) || cpf.length !== 11) {
-        return 'CPF deve conter exatamente 11 dígitos numéricos.';
-    }
-    return null;
-};
-
-const validarCep = (cep) => {
-    if (!cep) return null;
-    if (!regexSomenteDigitos.test(cep) || cep.length !== 9) {
-        return 'CEP deve conter exatamente 9 dígitos numéricos.';
-    }
-    return null;
-};
-
-const montarSugestaoClima = (temperatura, chove) => {
-    if (chove) {
-        return '🌧 Dia chuvoso! Ofereca promocoes para delivery.';
-    }
-
-    if (temperatura >= 28) {
-        return '🌞 Dia quente! Destaque combos com bebida gelada.';
-    }
-
-    if (temperatura <= 18) {
-        return '🥶 Dia frio! Destaque cafes e lanches quentes.';
-    }
-
-    return '🌤 Clima agradavel! Aproveite para divulgar combos da casa.';
-};
-
 export const criar = async (req, res) => {
     try {
-        const nome = normalizarTexto(req.body.nome);
-        const telefone = normalizarTexto(req.body.telefone);
-        const email = normalizarTexto(req.body.email)?.toLowerCase();
-        const cpf = normalizarTexto(req.body.cpf);
-        const cep = normalizarTexto(req.body.cep);
+        const nome = ClienteModel.normalizarTexto(req.body.nome);
+        const telefone = ClienteModel.normalizarTexto(req.body.telefone);
+        const email = ClienteModel.normalizarTexto(req.body.email)?.toLowerCase();
+        const cpf = ClienteModel.normalizarTexto(req.body.cpf);
+        const cep = ClienteModel.normalizarTexto(req.body.cep);
 
-        const erroNome = validarNome(nome);
-        if (erroNome) return res.status(400).json({ erro: erroNome });
+        const cliente = new ClienteModel({ nome, telefone, email, cpf, cep });
 
-        const erroTelefone = validarTelefone(telefone);
-        if (erroTelefone) return res.status(400).json({ erro: erroTelefone });
-
-        const erroEmail = validarEmail(email);
-        if (erroEmail) return res.status(400).json({ erro: erroEmail });
-
-        const erroCpf = validarCpf(cpf);
-        if (erroCpf) return res.status(400).json({ erro: erroCpf });
-
-        const erroCep = validarCep(cep);
-        if (erroCep) return res.status(400).json({ erro: erroCep });
+        const erroValidacao = cliente.validarCriacao();
+        if (erroValidacao) return res.status(400).json({ erro: erroValidacao });
 
         let endereco = {};
         if (cep) {
@@ -91,17 +22,11 @@ export const criar = async (req, res) => {
             if (!endereco) return res.status(400).json({ erro: `CEP ${cep} não encontrado.` });
         }
 
-        const cliente = new ClienteModel({
-            nome,
-            telefone,
-            email,
-            cpf,
-            cep: cep ? String(cep) : null,
-            logradouro: endereco.logradouro || null,
-            bairro: endereco.bairro || null,
-            localidade: endereco.localidade || null,
-            uf: endereco.uf || null,
-        });
+        cliente.cep = cep ? String(cep) : null;
+        cliente.logradouro = endereco.logradouro || null;
+        cliente.bairro = endereco.bairro || null;
+        cliente.localidade = endereco.localidade || null;
+        cliente.uf = endereco.uf || null;
 
         const registro = await cliente.criar();
 
@@ -165,39 +90,39 @@ export const atualizar = async (req, res) => {
         if (isNaN(id))
             return res.status(400).json({ erro: 'ID inválido. Informe um número válido.' });
 
-        const nome = normalizarTexto(req.body.nome);
-        const telefone = normalizarTexto(req.body.telefone);
-        const email = normalizarTexto(req.body.email)?.toLowerCase();
-        const cpf = normalizarTexto(req.body.cpf);
-        const cep = normalizarTexto(req.body.cep);
+        const nome = ClienteModel.normalizarTexto(req.body.nome);
+        const telefone = ClienteModel.normalizarTexto(req.body.telefone);
+        const email = ClienteModel.normalizarTexto(req.body.email)?.toLowerCase();
+        const cpf = ClienteModel.normalizarTexto(req.body.cpf);
+        const cep = ClienteModel.normalizarTexto(req.body.cep);
         const { ativo } = req.body;
 
         const dados = {};
 
         if (nome !== undefined) {
-            const erroNome = validarNome(nome);
+            const erroNome = ClienteModel.validarNome(nome);
             if (erroNome) return res.status(400).json({ erro: erroNome });
             dados.nome = nome;
         }
         if (telefone !== undefined) {
-            const erroTelefone = validarTelefone(telefone);
+            const erroTelefone = ClienteModel.validarTelefone(telefone);
             if (erroTelefone) return res.status(400).json({ erro: erroTelefone });
             dados.telefone = telefone;
         }
         if (email !== undefined) {
-            const erroEmail = validarEmail(email);
+            const erroEmail = ClienteModel.validarEmail(email);
             if (erroEmail) return res.status(400).json({ erro: erroEmail });
             dados.email = email;
         }
         if (cpf !== undefined) {
-            const erroCpf = validarCpf(cpf);
+            const erroCpf = ClienteModel.validarCpf(cpf);
             if (erroCpf) return res.status(400).json({ erro: erroCpf });
             dados.cpf = cpf;
         }
         if (ativo !== undefined) dados.ativo = ativo;
 
         if (cep !== undefined) {
-            const erroCep = validarCep(cep);
+            const erroCep = ClienteModel.validarCep(cep);
             if (erroCep) return res.status(400).json({ erro: erroCep });
 
             if (!cep) {
@@ -207,8 +132,7 @@ export const atualizar = async (req, res) => {
                 dados.localidade = null;
                 dados.uf = null;
             } else {
-                const cepViaCep = cep.slice(0, 8);
-                const endereco = await ClienteModel.buscarEnderecoPorCep(cepViaCep);
+                const endereco = await ClienteModel.buscarEnderecoPorCep(cep);
 
                 if (endereco && endereco.indisponivel)
                     return res
@@ -264,15 +188,12 @@ export const deletar = async (req, res) => {
 
         if (!cliente) return res.status(404).json({ erro: 'Cliente não encontrado.' });
 
-        // Regra de negócio implementada no model: não pode deletar cliente com pedido em status ABERTO
+        const resultado = await cliente.deletar();
 
-        await cliente.deletar();
+        if (resultado.erro) return res.status(400).json({ erro: resultado.erro });
 
         return res.status(200).json({ mensagem: 'Cliente removido com sucesso.' });
     } catch (error) {
-        if (error.message === 'Não pode deletar cliente com pedido em status ABERTO.') {
-            return res.status(400).json({ erro: error.message });
-        }
         if (error.code === 'P2003') {
             return res
                 .status(400)
@@ -297,13 +218,13 @@ export const buscarClima = async (req, res) => {
             return res.status(404).json({ erro: 'Cliente não encontrado.' });
         }
 
-        if (!cliente.cep || !/^\d{9}$/.test(cliente.cep)) {
+        if (!cliente.cep || !/^\d{8}$/.test(cliente.cep)) {
             return res
                 .status(400)
-                .json({ erro: 'CEP deve conter exatamente 9 dígitos numéricos.' });
+                .json({ erro: 'CEP deve conter exatamente 8 dígitos numéricos.' });
         }
 
-        const endereco = await ClienteModel.buscarEnderecoPorCep(cliente.cep.slice(0, 8));
+        const endereco = await ClienteModel.buscarEnderecoPorCep(cliente.cep);
 
         if (endereco?.indisponivel) {
             return res.status(400).json({ erro: 'Serviço ViaCEP indisponível no momento.' });
@@ -336,7 +257,7 @@ export const buscarClima = async (req, res) => {
             });
         }
 
-        const chove = codigosChuva.has(climaAtual.weathercode);
+        const chove = ClienteModel.codigosChuva.has(climaAtual.weathercode);
         const quente = climaAtual.temperatura >= 28;
 
         return res.status(200).json({
@@ -346,7 +267,7 @@ export const buscarClima = async (req, res) => {
                 temperatura: Number(climaAtual.temperatura),
                 chove,
                 quente,
-                sugestao: montarSugestaoClima(Number(climaAtual.temperatura), chove),
+                sugestao: ClienteModel.montarSugestaoClima(Number(climaAtual.temperatura), chove),
             },
         });
     } catch (error) {
