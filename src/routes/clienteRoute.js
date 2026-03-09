@@ -7,7 +7,7 @@ const router = express.Router();
 router.post('/clientes', autenticarApiKey, controller.criar);
 router.get('/clientes', autenticarApiKey, controller.buscarTodos);
 router.get('/clientes/:id', autenticarApiKey, controller.buscarPorId);
-router.get('/clientes/:id/cep', autenticarApiKey, controller.buscarClima);
+router.get('/clientes/:id/clima', autenticarApiKey, controller.buscarClima);
 router.put('/clientes/:id', autenticarApiKey, controller.atualizar);
 router.delete('/clientes/:id', autenticarApiKey, controller.deletar);
 
