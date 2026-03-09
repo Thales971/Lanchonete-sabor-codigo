@@ -1,4 +1,4 @@
-import PedidoModel from '../models/pedidoModel.js';
+import PedidoModel from '../models/PedidoModel.js';
 import ClienteModel from '../models/ClienteModel.js';
 
 const statusValidos = ['ABERTO', 'PAGO', 'CANCELADO'];
