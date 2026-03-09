@@ -86,6 +86,25 @@ async function main() {
             },
         ],
     });
+    // adiciona um pedido usando a data e hora atual
+    await prisma.pedido.create({
+        data: {
+            clienteId: 1,
+            total: 12,
+            status: 'ABERTO',
+            criadoEm: new Date(),
+        },
+    });
+
+    await prisma.itemPedido.create({
+        data: {
+            pedidoId: 1,
+            produtoId: 1,
+            quantidade: 1,
+            preco: 12,
+        },
+    });
+
 
     console.log('✅ Seed concluído!');
 }
