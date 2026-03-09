@@ -15,7 +15,8 @@ export const criar = async (req, res) => {
 
         let endereco = {};
         if (cep) {
-            endereco = await ClienteModel.buscarEnderecoPorCep(cep);
+            const cepViaCep = cep.slice(0, 8);
+            endereco = await ClienteModel.buscarEnderecoPorCep(cepViaCep);
             if (endereco && endereco.indisponivel)
                 return res.status(400).json({ erro: 'Serviço ViaCEP indisponível no momento.' });
             if (!endereco) return res.status(400).json({ erro: `CEP ${cep} não encontrado.` });
