@@ -57,4 +57,7 @@ router.get('/clientes/:id/clima', autenticarApiKey, controller.buscarClima);
 router.put('/clientes/:id', autenticarApiKey, controller.atualizar);👌
 router.delete('/clientes/:id', autenticarApiKey, controller.deletar);👌
 
+## Item Pedido Routes
+router.post('/pedidos/:id/itens', controller.criar);
+router.delete('/pedidos/:id/itens/:itemId', controller.deletar);
 
