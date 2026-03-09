@@ -12,8 +12,10 @@ async function main() {
     console.log('🌱 Resetando tabelas Cliente e Produto...');
 
     // Remove todos os registros existentes
-    // await prisma.cliente.deleteMany();
-    // await prisma.produto.deleteMany();
+    await prisma.itemPedido.deleteMany();
+    await prisma.pedido.deleteMany();
+    await prisma.produto.deleteMany();
+    await prisma.cliente.deleteMany();
 
     console.log('📦 Inserindo novos registros de clientes e produtos...');
 
@@ -86,7 +88,7 @@ async function main() {
             },
         ],
     });
-    // adiciona um pedido usando a data e hora atual
+
     await prisma.pedido.create({
         data: {
             clienteId: 1,
@@ -101,11 +103,9 @@ async function main() {
             pedidoId: 1,
             produtoId: 1,
             quantidade: 1,
-            preco: 12,
+            precoUnitario: 12,
         },
     });
-    
-
 
     console.log('✅ Seed concluído!');
 }
