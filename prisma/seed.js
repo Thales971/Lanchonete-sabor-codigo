@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
+const { PrismaClient, TipoCategoria, TipoStatus } = pkg;
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 
