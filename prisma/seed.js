@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import pkg from '@prisma/client';
-const { PrismaClient, TipoCategoria, TipoStatus } = pkg;
+const { PrismaClient } = pkg;
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 
@@ -11,52 +11,52 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
     console.log('🌱 Resetando tabelas...');
 
-    await prisma.itemPedido.deleteMany();
-    await prisma.pedidos.deleteMany();
-    await prisma.produtos.deleteMany();
-    await prisma.cliente.deleteMany();
+    await prisma.$executeRawUnsafe(`
+        TRUNCATE TABLE "itemPedido", "pedidos", "cliente", "produtos"
+        RESTART IDENTITY CASCADE;
+    `);
 
-    console.log('📦 Inserindo novos registros de clientes...');
+    console.log('📦 Inserindo clientes...');
 
     await prisma.cliente.createMany({
         data: [
             {
-                nome: 'Ana Silva',
+                nome: 'João Silva',
                 telefone: '11987654321',
-                email: 'ana.silva@example.com',
+                email: 'joao@email.com',
                 cpf: '12345678901',
                 cep: '01310100',
+                logradouro: 'Avenida Paulista',
+                bairro: 'Bela Vista',
+                localidade: 'São Paulo',
+                uf: 'SP',
             },
             {
-                nome: 'Bruno Costa',
-                telefone: '21912345678',
-                email: 'bruno.costa@example.com',
-                cpf: '23456789012',
+                nome: 'Maria Santos',
+                telefone: '21987654321',
+                email: 'maria@email.com',
+                cpf: '98765432100',
                 cep: '20040020',
+                logradouro: 'Rua da Assembleia',
+                bairro: 'Centro',
+                localidade: 'Rio de Janeiro',
+                uf: 'RJ',
             },
             {
-                nome: 'Carla Souza',
-                telefone: '31998765432',
-                email: 'carla.souza@example.com',
-                cpf: '34567890123',
+                nome: 'Pedro Oliveira',
+                telefone: '31987654321',
+                email: 'pedro@email.com',
+                cpf: '45678912300',
                 cep: '30130000',
-            },
-            {
-                nome: 'Daniel Pereira',
-                telefone: '41912398765',
-                email: 'daniel.pereira@example.com',
-                cpf: '45678901234',
-            },
-            {
-                nome: 'Eva Rodrigues',
-                telefone: '51987612345',
-                email: 'eva.rodrigues@example.com',
-                cpf: '56789012345',
+                logradouro: 'Avenida Afonso Pena',
+                bairro: 'Centro',
+                localidade: 'Belo Horizonte',
+                uf: 'MG',
             },
         ],
     });
 
-    console.log('Inserindo Produtos...');
+    console.log('🍔 Inserindo produtos...');
 
     await prisma.produtos.createMany({
         data: [
@@ -64,90 +64,48 @@ async function main() {
                 nome: 'X-Burguer',
                 descricao: 'Hambúrguer com queijo e alface',
                 categoria: 'LANCHE',
-                preco: 15.5,
-                disponivel: true,
+                preco: 18.5,
             },
             {
                 nome: 'Refrigerante 350ml',
-                descricao: 'Bebida gaseificada',
+                descricao: 'Bebida gaseificada gelada',
                 categoria: 'BEBIDA',
-                preco: 5,
-                disponivel: true,
+                preco: 6.0,
             },
             {
-                nome: 'Sorvete 2 bolas',
-                descricao: 'Sorvete de creme e chocolate',
+                nome: 'Pudim de Leite',
+                descricao: 'Pudim caseiro',
                 categoria: 'SOBREMESA',
-                preco: 8,
-                disponivel: true,
-            },
-            {
-                nome: 'Combo Família',
-                descricao: '4 lanches + 4 bebidas',
-                categoria: 'COMBO',
-                preco: 60,
-                disponivel: true,
-            },
-            {
-                nome: 'Salada',
-                descricao: 'Mix de folhas verdes',
-                categoria: 'LANCHE',
-                preco: 12,
-                disponivel: true,
+                preco: 7.5,
             },
         ],
     });
-
-    console.log('Pedidos sendo criados...');
 
     const clientes = await prisma.cliente.findMany({ orderBy: { id: 'asc' } });
     const produtos = await prisma.produtos.findMany({ orderBy: { id: 'asc' } });
 
-    await prisma.pedidos.createMany({
-        data: [
-            {
-                clienteId: clientes[0].id,
-                total: 12,
-                status: 'ABERTO',
-            },
-            {
-                clienteId: clientes[1].id,
-                total: 8,
-                status: 'PAGO',
-            },
-            {
-                clienteId: clientes[2].id,
-                total: 15.5,
-                status: 'CANCELADO',
-            },
-        ],
-    });
+    console.log('🧾 Inserindo pedido e itens...');
 
-    const pedidos = await prisma.pedidos.findMany({ orderBy: { id: 'asc' } });
-
-    console.log('Inserindo itens pedido...');
-
-    await prisma.itemPedido.createMany({
-        data: [
-            {
-                pedidoId: pedidos[0].id,
-                produtoId: produtos[4].id,
-                quantidade: 1,
-                precoUnitario: produtos[4].preco,
+    await prisma.pedidos.create({
+        data: {
+            clienteId: clientes[0].id,
+            total: 24.5,
+            status: 'ABERTO',
+            itensPedidos: {
+                create: [
+                    {
+                        produtoId: produtos[0].id,
+                        quantidade: 1,
+                        precoUnitario: produtos[0].preco,
+                    },
+                    {
+                        produtoId: produtos[1].id,
+                        quantidade: 1,
+                        precoUnitario: produtos[1].preco,
+                    },
+                ],
             },
-            {
-                pedidoId: pedidos[1].id,
-                produtoId: produtos[2].id,
-                quantidade: 1,
-                precoUnitario: produtos[2].preco,
-            },
-            {
-                pedidoId: pedidos[2].id,
-                produtoId: produtos[0].id,
-                quantidade: 1,
-                precoUnitario: produtos[0].preco,
-            },
-        ],
+        },
     });
 
     console.log('✅ Seed concluído!');

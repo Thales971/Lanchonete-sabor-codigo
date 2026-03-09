@@ -35,9 +35,6 @@ export const criar = async (req, res) => {
             if (error.meta.target.includes('cpf')) {
                 return res.status(400).json({ erro: 'CPF já cadastrado no sistema.' });
             }
-            if (error.meta.target.includes('telefone')) {
-                return res.status(400).json({ erro: 'Telefone já cadastrado para outro cliente.' });
-            }
             if (error.meta.target.includes('email')) {
                 return res.status(400).json({ erro: 'Email já cadastrado no sistema.' });
             }
@@ -163,9 +160,6 @@ export const atualizar = async (req, res) => {
         if (error.code === 'P2002') {
             if (error.meta.target.includes('cpf')) {
                 return res.status(400).json({ erro: 'CPF já cadastrado no sistema.' });
-            }
-            if (error.meta.target.includes('telefone')) {
-                return res.status(400).json({ erro: 'Telefone já cadastrado para outro cliente.' });
             }
             if (error.meta.target.includes('email')) {
                 return res.status(400).json({ erro: 'Email já cadastrado no sistema.' });
