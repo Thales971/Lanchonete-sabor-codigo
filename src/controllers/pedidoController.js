@@ -122,3 +122,4 @@ export const deletar = async (req, res) => {
         return res.status(500).json({ erro: 'Erro ao deletar pedido.' });
     }
 };
+
