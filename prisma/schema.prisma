@@ -7,35 +7,34 @@ datasource db {
 }
 
 model Cliente {
-    id          Int      @id @default(autoincrement())
-    nome        String   @db.VarChar(100)
-    telefone    String?   @unique
-    email       String?   @unique
-    cpf         String?   @unique
-    cep         String?  @db.Char(9)
-    logradouro  String?
-    bairro      String?
-    localidade  String?
-    uf          String?  @db.Char(2)
-    ativo       Boolean  @default(true)
-
+    id         Int     @id @default(autoincrement())
+    nome       String  @db.VarChar(100)
+    telefone   String? @unique
+    email      String? @unique
+    cpf        String? @unique
+    cep        String? @db.Char(8)
+    logradouro String?
+    bairro     String?
+    localidade String?
+    uf         String? @db.Char(2)
+    ativo      Boolean @default(true)
 
     //1:N
-    pedidos     Pedidos[]
+    pedidos Pedidos[]
 
     @@map("cliente")
 }
 
 model Produtos {
-    id          Int      @id @default(autoincrement())
-    nome        String
-    descricao   String?   @db.VarChar(255)
-    categoria   TipoCategoria
-    preco       Decimal   @db.Decimal(10,2)
-    disponivel  Boolean   @default(true)
+    id         Int           @id @default(autoincrement())
+    nome       String
+    descricao  String?       @db.VarChar(255)
+    categoria  TipoCategoria
+    preco      Decimal       @db.Decimal(10, 2)
+    disponivel Boolean       @default(true)
 
     //1:N
-    itensPedidos     ItemPedido[]
+    itensPedidos ItemPedido[]
 
     @@map("produtos")
 }
@@ -48,13 +47,13 @@ enum TipoCategoria {
 }
 
 model Pedidos {
-    id          Int        @id @default(autoincrement())
-    clienteId   Int
-    cliente     Cliente    @relation(fields: [clienteId], references: [id])
-    total       Decimal    @db.Decimal(10,2)
-    status      TipoStatus @default(ABERTO)
-    criadoEm    DateTime   @default(now())
-    itensPedidos     ItemPedido[]
+    id           Int          @id @default(autoincrement())
+    clienteId    Int
+    cliente      Cliente      @relation(fields: [clienteId], references: [id])
+    total        Decimal      @db.Decimal(10, 2)
+    status       TipoStatus   @default(ABERTO)
+    criadoEm     DateTime     @default(now())
+    itensPedidos ItemPedido[]
 
     @@map("pedidos")
 }
@@ -66,13 +65,13 @@ enum TipoStatus {
 }
 
 model ItemPedido {
-    id             Int      @id @default(autoincrement())
-    pedidoId       Int
-    pedido         Pedidos   @relation(fields: [pedidoId], references: [id])
-    produtoId      Int
-    produto        Produtos  @relation(fields: [produtoId], references: [id])
-    quantidade     Int
-    precoUnitario  Decimal  @db.Decimal(10,2)
+    id            Int      @id @default(autoincrement())
+    pedidoId      Int
+    pedido        Pedidos  @relation(fields: [pedidoId], references: [id])
+    produtoId     Int
+    produto       Produtos @relation(fields: [produtoId], references: [id])
+    quantidade    Int
+    precoUnitario Decimal  @db.Decimal(10, 2)
 
     @@map("itemPedido")
 }

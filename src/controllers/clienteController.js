@@ -217,20 +217,22 @@ export const buscarClima = async (req, res) => {
             return res.status(404).json({ erro: 'Cliente não encontrado.' });
         }
 
-        if (!cliente.cep || !/^\d{9}$/.test(cliente.cep)) {
+        const cepLimpo = cliente.cep ? cliente.cep.trim() : null;
+
+        if (!cepLimpo || !/^\d{8}$/.test(cepLimpo)) {
             return res
                 .status(400)
-                .json({ erro: 'CEP deve conter exatamente 9 dígitos numéricos.' });
+                .json({ erro: 'CEP deve conter exatamente 8 dígitos numéricos.' });
         }
 
-        const endereco = await ClienteModel.buscarEnderecoPorCep(cliente.cep);
+        const endereco = await ClienteModel.buscarEnderecoPorCep(cepLimpo);
 
         if (endereco?.indisponivel) {
             return res.status(400).json({ erro: 'Serviço ViaCEP indisponível no momento.' });
         }
 
         if (!endereco || !endereco.localidade) {
-            return res.status(400).json({ erro: `CEP ${cliente.cep} não encontrado.` });
+            return res.status(400).json({ erro: `CEP ${cepLimpo} não encontrado.` });
         }
 
         const coordenadas = await ClienteModel.buscarCoordenadasPorCidade(endereco.localidade);

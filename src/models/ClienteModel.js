@@ -70,8 +70,8 @@ export default class ClienteModel {
 
     static validarCep(cep) {
         if (!cep) return null;
-        if (!regexSomenteDigitos.test(cep) || cep.length !== 9) {
-            return 'CEP deve conter exatamente 9 dígitos numéricos.';
+        if (!regexSomenteDigitos.test(cep) || cep.length !== 8) {
+            return 'CEP deve conter exatamente 8 dígitos numéricos.';
         }
         return null;
     }
