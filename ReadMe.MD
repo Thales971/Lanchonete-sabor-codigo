@@ -67,7 +67,7 @@ router.get('/pedidos', controller.buscarTodos);
 router.get('/pedidos/:id', controller.buscarPorId);
 router.put('/pedidos/:id/cancelar', controller.cancelar);
 
-## Produto Routes
+## ProdutoRoutes
 router.post("/produtos", controller.criar);👌
 router.get("/produtos", controller.buscarTodos);👌
 router.get("/produtos/:id", controller.buscarPorId);👌
