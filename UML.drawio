@@ -1,0 +1,100 @@
+<mxfile>
+  <diagram name="UML Classes" id="uml1">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="cls1" value="ClienteModel" style="swimlane;fontStyle=1;align=center;startSize=26;container=1;collapsible=0;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="20" y="30" width="270" height="430" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls1attr" value="- id: Int&#xa;- nome: String&#xa;- telefone: String?&#xa;- email: String?&#xa;- cpf: String?&#xa;- cep: String?&#xa;- logradouro: String?&#xa;- bairro: String?&#xa;- localidade: String?&#xa;- uf: String?&#xa;- ativo: Boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="cls1">
+          <mxGeometry y="26" width="270" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls1sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=10;rotatable=0;labelPosition=left;points=[];portConstraint=eastwest;" vertex="1" parent="cls1">
+          <mxGeometry y="206" width="270" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls1meth" value="+ criar()&#xa;+ atualizar(dados)&#xa;+ deletar()&#xa;+ validarCriacao()&#xa;+ buscarTodos(filtros)&#xa;+ buscarPorId(id)&#xa;+ buscarEnderecoPorCep(cep)&#xa;+ buscarCoordenadasPorCidade(cidade)&#xa;+ buscarClimaAtual(lat, lon)&#xa;+ montarSugestaoClima(temp, chove)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="cls1">
+          <mxGeometry y="214" width="270" height="216" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls2" value="ProdutoModel" style="swimlane;fontStyle=1;align=center;startSize=26;container=1;collapsible=0;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="870" y="30" width="270" height="340" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls2attr" value="- id: Int&#xa;- nome: String&#xa;- descricao: String?&#xa;- categoria: TipoCategoria&#xa;- preco: Decimal&#xa;- disponivel: Boolean" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="cls2">
+          <mxGeometry y="26" width="270" height="104" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls2sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=10;rotatable=0;labelPosition=left;points=[];portConstraint=eastwest;" vertex="1" parent="cls2">
+          <mxGeometry y="130" width="270" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls2meth" value="+ criar()&#xa;+ atualizar(dados)&#xa;+ deletar()&#xa;+ validarCriacao()&#xa;+ validarNome(nome)&#xa;+ validarDescricao(descricao)&#xa;+ validarCategoria(categoria)&#xa;+ validarPreco(preco)&#xa;+ buscarTodos(filtros)&#xa;+ buscarPorId(id)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="cls2">
+          <mxGeometry y="138" width="270" height="202" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls3" value="PedidoModel" style="swimlane;fontStyle=1;align=center;startSize=26;container=1;collapsible=0;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="340" y="30" width="270" height="370" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls3attr" value="- id: Int&#xa;- clienteId: Int&#xa;- total: Decimal&#xa;- status: TipoStatus&#xa;- criadoEm: DateTime&#xa;- itensPedidos: ItemPedido[]" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="cls3">
+          <mxGeometry y="26" width="270" height="104" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls3sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=10;rotatable=0;labelPosition=left;points=[];portConstraint=eastwest;" vertex="1" parent="cls3">
+          <mxGeometry y="130" width="270" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls3meth" value="+ criar()&#xa;+ atualizar(dados)&#xa;+ cancelar()&#xa;+ deletar()&#xa;+ validarStatus(status)&#xa;+ buscarTodos(filtros)&#xa;+ buscarPorId(id)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="cls3">
+          <mxGeometry y="138" width="270" height="232" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls4" value="ItemPedidoModel" style="swimlane;fontStyle=1;align=center;startSize=26;container=1;collapsible=0;fontSize=13;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="570" y="460" width="280" height="360" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls4attr" value="- id: Int&#xa;- pedidoId: Int&#xa;- produtoId: Int&#xa;- quantidade: Int&#xa;- precoUnitario: Decimal" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="cls4">
+          <mxGeometry y="26" width="280" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls4sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=10;rotatable=0;labelPosition=left;points=[];portConstraint=eastwest;" vertex="1" parent="cls4">
+          <mxGeometry y="116" width="280" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="cls4meth" value="+ criar()&#xa;+ atualizar(dados)&#xa;+ deletar()&#xa;+ validarQuantidade(qtd)&#xa;+ verificarPedidoAberto(pedido)&#xa;+ verificarProdutoDisponivel(produto)&#xa;+ buscarTodos(filtros)&#xa;+ buscarPorId(id)&#xa;+ buscarPedidoPorId(id)&#xa;+ buscarProdutoPorId(id)&#xa;+ recalcularTotalDoPedido(pedidoId)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="cls4">
+          <mxGeometry y="124" width="280" height="236" as="geometry"/>
+        </mxCell>
+        <mxCell id="urel1" style="endArrow=diamondThin;endFill=1;endSize=12;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="cls1attr" target="cls3attr">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="urel1s" value="1" style="edgeLabel;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;" vertex="1" connectable="0" parent="urel1">
+          <mxGeometry x="-0.85" relative="1" as="geometry">
+            <mxPoint x="-5" y="-12" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="urel1e" value="*" style="edgeLabel;align=right;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;" vertex="1" connectable="0" parent="urel1">
+          <mxGeometry x="0.85" relative="1" as="geometry">
+            <mxPoint x="5" y="-12" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="urel2" style="endArrow=diamondThin;endFill=1;endSize=12;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="cls3meth" target="cls4attr">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="urel2s" value="1" style="edgeLabel;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;" vertex="1" connectable="0" parent="urel2">
+          <mxGeometry x="-0.85" relative="1" as="geometry">
+            <mxPoint x="-5" y="-12" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="urel2e" value="*" style="edgeLabel;align=right;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;" vertex="1" connectable="0" parent="urel2">
+          <mxGeometry x="0.85" relative="1" as="geometry">
+            <mxPoint x="5" y="-12" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="urel3" style="endArrow=diamondThin;endFill=1;endSize=12;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="cls2meth" target="cls4attr">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="urel3s" value="1" style="edgeLabel;align=left;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;" vertex="1" connectable="0" parent="urel3">
+          <mxGeometry x="-0.85" relative="1" as="geometry">
+            <mxPoint x="-5" y="-12" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="urel3e" value="*" style="edgeLabel;align=right;verticalAlign=middle;resizable=0;points=[];fontSize=12;fontStyle=1;" vertex="1" connectable="0" parent="urel3">
+          <mxGeometry x="0.85" relative="1" as="geometry">
+            <mxPoint x="5" y="-12" as="offset"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="titulo2" value="UML - Diagrama de Classes - Lanchonete Sabor e Codigo" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="840" width="500" height="30" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
